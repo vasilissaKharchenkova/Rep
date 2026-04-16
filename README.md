@@ -1,75 +1,76 @@
-# Nuxt Minimal Starter
+# CLICKWOOD - Мебельный интернет магазин
 
-Look at the [Nuxt documentation](https://nuxt.com/docs/getting-started/introduction) to learn more.
+Современный интернет магазин дизайнерской мебели на Nuxt 3 + Vue 3 + Tailwind CSS.
 
-## Setup
+## 🚀 Быстрый старт
 
-Make sure to install dependencies:
-
+### Шаг 1: Скопируйте репозиторий
 ```bash
-# npm
+git clone https://github.com/vasilissaKharchenkova/Rep.git
+cd Rep
+```
+
+### Шаг 2: Установите зависимости
+```bash
 npm install
-
-# pnpm
-pnpm install
-
-# yarn
-yarn install
-
-# bun
-bun install
 ```
 
-## Development Server
-
-Start the development server on `http://localhost:3000`:
-
+### Шаг 3: Запустите локальный сервер разработки
 ```bash
-# npm
 npm run dev
-
-# pnpm
-pnpm dev
-
-# yarn
-yarn dev
-
-# bun
-bun run dev
 ```
 
-## Production
+✅ Сайт будет доступен по адресу: `http://localhost:3000`
 
-Build the application for production:
+---
 
-```bash
-# npm
-npm run build
+## 📋 Что необходимо установить перед запуском
 
-# pnpm
-pnpm build
+1.  **Node.js** версии 20 или выше: https://nodejs.org/
+2.  **Git**: https://git-scm.com/
 
-# yarn
-yarn build
+---
 
-# bun
-bun run build
+## 🔧 Доступные команды
+
+| Команда | Описание |
+|---|---|
+| `npm run dev` | Запустить сервер для разработки с горячей перезагрузкой |
+| `npm run build` | Собрать сайт для публикации на хостинг |
+| `npm run preview` | Посмотреть готовую сборку перед публикацией |
+| `npm run generate` | Сгенерировать статический сайт для любого хостинга |
+
+---
+
+## 📂 Структура проекта
+
+```
+├── pages/           # Страницы сайта
+│   ├── index.vue    # Главная страница
+│   ├── catalog.vue  # Каталог товаров
+│   └── product/     # Страница товара
+├── components/      # Переиспользуемые компоненты
+├── layouts/         # Общие шаблоны страниц
+├── public/          # Статические файлы, изображения
+├── nuxt.config.ts   # Конфигурация Nuxt
+└── tailwind.config.js # Настройки стилей
 ```
 
-Locally preview production build:
+---
 
-```bash
-# npm
-npm run preview
+## 🏗️ Технологии
 
-# pnpm
-pnpm preview
+- **Nuxt 3** - фреймворк
+- **Vue 3 Composition API**
+- **Tailwind CSS 3** - стили
+- **Swiper** - слайдеры
+- **TypeScript**
 
-# yarn
-yarn preview
+---
 
-# bun
-bun run preview
-```
+## 📌 Примечания
 
-Check out the [deployment documentation](https://nuxt.com/docs/getting-started/deployment) for more information.
+✅ Сайт полностью адаптивный под мобильные устройства
+✅ Оптимизированная загрузка изображений
+✅ Поддержка SEO мета-тегов
+✅ Готов к деплою на любой хостинг

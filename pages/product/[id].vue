@@ -1,5 +1,8 @@
 <script setup>
 import { useRoute } from 'vue-router'
+import { useCart } from '~/composables/useCart'
+
+const { addItem } = useCart()
 
 const route = useRoute()
 const productId = parseInt(route.params.id)
@@ -187,11 +190,11 @@ const selectTab = (tab) => {
             <!-- Price -->
             <div class="font-body text-4xl text-textMain mb-6">{{ product.price }}</div>
 
-            <!-- Buttons -->
-            <div class="flex flex-col gap-3 mb-8">
-              <button class="w-full py-3 bg-primary text-white rounded-full hover:bg-primary/90 transition-colors">
-                В корзину
-              </button>
+             <!-- Buttons -->
+             <div class="flex flex-col gap-3 mb-8">
+               <button @click="addItem({ id: product.id, name: product.name, price: parseInt(product.price.replace(/\D/g, '')), image: product.images[0], article: product.code })" class="w-full py-3 bg-primary text-white rounded-full hover:bg-primary/90 transition-colors">
+                 В корзину
+               </button>
               <button class="w-full py-3 border border-primary text-primary rounded-full hover:bg-primary/5 transition-colors">
                 Купить в 1 клик
               </button>

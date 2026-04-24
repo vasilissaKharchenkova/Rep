@@ -1,3 +1,9 @@
+<script setup>
+import { useCart } from '~/composables/useCart'
+
+const { totalItems } = useCart()
+</script>
+
 <template>
   <header class="w-full">
     <!-- Top bar -->
@@ -13,9 +19,9 @@
         <div class="container mx-auto px-4 flex items-center justify-between md:grid md:grid-cols-3">
           <!-- Left menu -->
           <nav class="flex gap-8 md:justify-self-start">
-          <NuxtLink to="/catalog" class="text-brown font-body tracking-wide hover:opacity-80 transition-opacity">Каталог</NuxtLink>
-          <a href="#" class="text-brown font-body tracking-wide hover:opacity-80 transition-opacity">О нас</a>
-          <a href="#" class="text-brown font-body tracking-wide hover:opacity-80 transition-opacity">Коллекции</a>
+          <NuxtLink to="/catalog" active-class="text-brown font-bold border-b-2 border-brown pb-1" class="text-brown font-body tracking-wide hover:opacity-80 transition-opacity font-medium">Каталог</NuxtLink>
+          <NuxtLink to="/about" active-class="text-brown font-bold border-b-2 border-brown pb-1" class="text-brown font-body tracking-wide hover:opacity-80 transition-opacity font-medium">О нас</NuxtLink>
+          <NuxtLink to="/collections" active-class="text-brown font-bold border-b-2 border-brown pb-1" class="text-brown font-body tracking-wide hover:opacity-80 transition-opacity font-medium">Коллекции</NuxtLink>
         </nav>
 
           <!-- Logo -->
@@ -25,7 +31,7 @@
 
           <!-- Right section -->
           <div class="flex items-center gap-6 md:justify-self-end">
-          <a href="#" class="text-brown font-body tracking-wide hover:opacity-80 transition-opacity">Доставка</a>
+          <NuxtLink to="/delivery" active-class="text-brown font-bold border-b-2 border-brown pb-1" class="text-brown font-body tracking-wide hover:opacity-80 transition-opacity font-medium">Доставка</NuxtLink>
           
           <div class="relative">
             <input 
@@ -36,21 +42,22 @@
           </div>
 
           <!-- Cart icon -->
-          <button class="hover:text-primary transition-colors">
+          <NuxtLink to="/cart" class="hover:text-primary transition-colors relative">
             <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
               <circle cx="8" cy="21" r="1"/>
               <circle cx="19" cy="21" r="1"/>
               <path d="M2.05 2.05h2l2.66 12.42a2 2 0 0 0 2 1.58h9.78a2 2 0 0 0 1.95-1.57l1.65-7.43H5.12"/>
             </svg>
-          </button>
+            <span v-if="totalItems > 0" class="absolute -top-2 -right-2 w-5 h-5 bg-primary text-white text-xs rounded-full flex items-center justify-center">{{ totalItems }}</span>
+          </NuxtLink>
 
           <!-- Account icon -->
-          <button class="hover:text-primary transition-colors">
+          <NuxtLink to="/account" class="hover:text-primary transition-colors">
             <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
               <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
               <circle cx="12" cy="7" r="4"/>
             </svg>
-          </button>
+          </NuxtLink>
         </div>
       </div>
     </div>

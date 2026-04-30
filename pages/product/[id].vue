@@ -119,6 +119,12 @@ const products = [
 const product = products.find(p => p.id === productId)
 const activeTab = ref('description')
 const activeImage = ref(0)
+const selectedColor = ref(0)
+
+const productColors = [
+  { name: 'Орех', color: 'bg-amber-800' },
+  { name: 'Светлый дуб', color: 'bg-amber-200' }
+]
 
 const selectImage = (index) => {
   activeImage.value = index
@@ -126,6 +132,18 @@ const selectImage = (index) => {
 
 const selectTab = (tab) => {
   activeTab.value = tab
+}
+
+const selectColor = (index) => {
+  selectedColor.value = index
+}
+
+const openDeliveryInfo = () => {
+  navigateTo('/delivery')
+}
+
+const openInstallmentInfo = () => {
+  alert('Рассрочка без переплаты доступна на срок от 3 до 24 месяцев без первоначального взноса. Для оформления обратитесь в менеджеру по телефону.')
 }
 </script>
 
@@ -183,8 +201,11 @@ const selectTab = (tab) => {
 
             <!-- Colors -->
             <div class="flex gap-3 mb-6">
-              <div class="w-6 h-6 rounded-full bg-amber-800 cursor-pointer border-2 border-white shadow"></div>
-              <div class="w-6 h-6 rounded-full bg-amber-200 cursor-pointer border-2 border-white shadow"></div>
+              <div v-for="(color, index) in productColors" :key="index" 
+                   @click="selectColor(index)"
+                   class="w-6 h-6 rounded-full cursor-pointer border-2 border-white shadow transition-all"
+                   :class="[color.color, selectedColor === index ? 'ring-2 ring-primary ring-offset-2' : '']">
+              </div>
             </div>
 
             <!-- Price -->
@@ -202,11 +223,11 @@ const selectTab = (tab) => {
 
             <!-- Additional info -->
             <div class="space-y-4">
-              <div class="flex items-center justify-between py-3 border-b border-gray-200 cursor-pointer hover:text-primary">
+              <div @click="openDeliveryInfo" class="flex items-center justify-between py-3 border-b border-gray-200 cursor-pointer hover:text-primary">
                 <span>Стоимость доставки</span>
                 <span>›</span>
               </div>
-              <div class="flex items-center justify-between py-3 border-b border-gray-200 cursor-pointer hover:text-primary">
+              <div @click="openInstallmentInfo" class="flex items-center justify-between py-3 border-b border-gray-200 cursor-pointer hover:text-primary">
                 <span>Рассрочка без переплаты</span>
                 <span>›</span>
               </div>

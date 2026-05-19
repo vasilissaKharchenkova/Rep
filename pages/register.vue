@@ -1,12 +1,28 @@
-<script setup>
+<script setup lang="ts">
 import { ref } from 'vue'
+import { useRouter } from 'vue-router'
+import { useAuth } from '~/composables/useAuth'
+
+const router = useRouter()
+const { register } = useAuth()
 
 const name = ref('')
 const phone = ref('')
 const password = ref('')
+const error = ref('')
+const loading = ref(false)
 
-const register = () => {
-  console.log('Register', { name: name.value, phone: phone.value, password: password.value })
+const handleRegister = async () => {
+  error.value = ''
+  loading.value = true
+  try {
+    await register(phone.value, password.value, name.value)
+    router.push('/')
+  } catch (e: any) {
+    error.value = e?.data?.statusMessage || 'Ошибка регистрации. Попробуйте другой телефон.'
+  } finally {
+    loading.value = false
+  }
 }
 </script>
 
@@ -16,7 +32,7 @@ const register = () => {
       <div class="grid grid-cols-1 lg:grid-cols-2 overflow-hidden border border-textMain/20 rounded-3xl max-w-6xl mx-auto">
         <!-- Left image column -->
         <div class="relative">
-          <img src="https://images.unsplash.com/photo-1600566753190-17f0baa206bf?w=900&h=1000&fit=crop" 
+          <img src="../public/images/register_bg.png" 
                alt="Интерьер" 
                class="w-full h-full min-h-[500px] lg:min-h-[700px] object-cover">
         </div>
@@ -25,7 +41,11 @@ const register = () => {
         <div class="flex flex-col items-center justify-center p-8 lg:p-16">
           <h1 class="font-heading text-textMain text-4xl md:text-5xl mb-12">Регистрация</h1>
 
-          <form @submit.prevent="register" class="w-full max-w-sm space-y-6">
+          <form @submit.prevent="handleRegister" class="w-full max-w-sm space-y-6">
+            <div v-if="error" class="bg-red-50 text-red-600 text-sm px-4 py-3 rounded-xl">
+              {{ error }}
+            </div>
+
             <div>
               <input v-model="name" 
                      type="text" 
@@ -36,7 +56,8 @@ const register = () => {
             <div>
               <input v-model="phone" 
                      type="tel" 
-                     placeholder="Телефон"
+                     placeholder="+7 (___) ___-__-__"
+                     inputmode="numeric"
                      class="w-full px-6 py-4 border border-textMain/30 rounded-2xl bg-transparent text-textMain placeholder:text-textMain/50 focus:outline-none focus:border-textMain transition-colors">
             </div>
 
@@ -47,9 +68,9 @@ const register = () => {
                      class="w-full px-6 py-4 border border-textMain/30 rounded-2xl bg-transparent text-textMain placeholder:text-textMain/50 focus:outline-none focus:border-textMain transition-colors">
             </div>
 
-            <button type="submit" 
-                    class="w-full py-4 bg-brown text-white rounded-full font-body hover:bg-brown/90 transition-colors mt-4">
-              Зарегистрироваться
+            <button type="submit" :disabled="loading"
+                    class="w-full py-4 bg-brown text-white rounded-full font-body hover:bg-brown/90 transition-colors mt-4 disabled:opacity-50">
+              {{ loading ? 'Регистрация...' : 'Зарегистрироваться' }}
             </button>
 
             <div class="text-center pt-6">
@@ -61,11 +82,5 @@ const register = () => {
       </div>
     </div>
 
-    <!-- Footer -->
-    <footer class="bg-primary py-16">
-      <div class="container mx-auto px-4 text-center">
-        <h2 class="font-heading text-textMain text-5xl">CLICKWOOD</h2>
-      </div>
-    </footer>
   </main>
 </template>

@@ -239,12 +239,6 @@ const nextWorks = () => worksSwiper.value?.slideNext()
       </div>
     </section>
 
-    <!-- Footer -->
-    <footer class="bg-primary py-16 mt-16">
-      <div class="container mx-auto px-4 text-center">
-        <h2 class="font-heading text-textMain text-5xl">CLICKWOOD</h2>
-      </div>
-    </footer>
   </main>
 </template>
 

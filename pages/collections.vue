@@ -1,111 +1,22 @@
-<script setup>
-const rooms = [
-  {
-    id: 'living',
-    name: 'Гостиная',
-    image: 'https://images.unsplash.com/photo-1616486338812-3dadae4b4ace?w=800&h=600&fit=crop',
-    items: [
-      'https://images.unsplash.com/photo-1555041469-a586c61ea9bc?w=100&h=100&fit=crop',
-      'https://images.unsplash.com/photo-1580480055273-228ff5388ef8?q=80&w=100&h=100&fit=crop',
-      'https://images.unsplash.com/photo-1586023492125-27b2c045efd7?q=80&w=100&h=100&fit=crop',
-      'https://images.unsplash.com/photo-1611042553365-9b101441c135?q=80&w=100&h=100&fit=crop'
-    ],
-    price: 124000,
-    discount: 15
-  },
-  {
-    id: 'bedroom',
-    name: 'Спальня',
-    image: 'https://images.unsplash.com/photo-1616594039964-ae9021a400a0?w=800&h=600&fit=crop',
-    items: [
-      'https://images.unsplash.com/photo-1555041469-a586c61ea9bc?w=100&h=100&fit=crop',
-      'https://images.unsplash.com/photo-1580480055273-228ff5388ef8?q=80&w=100&h=100&fit=crop',
-      'https://images.unsplash.com/photo-1586023492125-27b2c045efd7?q=80&w=100&h=100&fit=crop'
-    ],
-    price: 89000,
-    discount: 12
-  },
-  {
-    id: 'kitchen',
-    name: 'Кухня',
-    image: 'https://images.unsplash.com/photo-1556909114-f6e7ad7d3136?w=800&h=600&fit=crop',
-    items: [
-      'https://images.unsplash.com/photo-1555041469-a586c61ea9bc?w=100&h=100&fit=crop',
-      'https://images.unsplash.com/photo-1580480055273-228ff5388ef8?q=80&w=100&h=100&fit=crop',
-      'https://images.unsplash.com/photo-1586023492125-27b2c045efd7?q=80&w=100&h=100&fit=crop',
-      'https://images.unsplash.com/photo-1611042553365-9b101441c135?q=80&w=100&h=100&fit=crop'
-    ],
-    price: 156000,
-    discount: 18
-  },
-  {
-    id: 'kids',
-    name: 'Детская',
-    image: 'https://images.unsplash.com/photo-1617325247665-96e58a881527?w=800&h=600&fit=crop',
-    items: [
-      'https://images.unsplash.com/photo-1555041469-a586c61ea9bc?w=100&h=100&fit=crop',
-      'https://images.unsplash.com/photo-1580480055273-228ff5388ef8?q=80&w=100&h=100&fit=crop',
-      'https://images.unsplash.com/photo-1586023492125-27b2c045efd7?q=80&w=100&h=100&fit=crop'
-    ],
-    price: 78000,
-    discount: 10
-  },
-  {
-    id: 'office',
-    name: 'Кабинет',
-    image: 'https://images.unsplash.com/photo-1518455027359-f3f8164ba6bd?w=800&h=600&fit=crop',
-    items: [
-      'https://images.unsplash.com/photo-1555041469-a586c61ea9bc?w=100&h=100&fit=crop',
-      'https://images.unsplash.com/photo-1580480055273-228ff5388ef8?q=80&w=100&h=100&fit=crop',
-      'https://images.unsplash.com/photo-1586023492125-27b2c045efd7?q=80&w=100&h=100&fit=crop',
-      'https://images.unsplash.com/photo-1611042553365-9b101441c135?q=80&w=100&h=100&fit=crop'
-    ],
-    price: 92000,
-    discount: 15
-  },
-  {
-    id: 'hallway',
-    name: 'Прихожая',
-    image: 'https://images.unsplash.com/photo-1600566753086-00f18fb6b3ea?w=800&h=600&fit=crop',
-    items: [
-      'https://images.unsplash.com/photo-1555041469-a586c61ea9bc?w=100&h=100&fit=crop',
-      'https://images.unsplash.com/photo-1580480055273-228ff5388ef8?q=80&w=100&h=100&fit=crop',
-      'https://images.unsplash.com/photo-1586023492125-27b2c045efd7?q=80&w=100&h=100&fit=crop'
-    ],
-    price: 45000,
-    discount: 10
-  },
-  {
-    id: 'bathroom',
-    name: 'Ванная',
-    image: 'https://images.unsplash.com/photo-1552321554300-156376675a3e?w=800&h=600&fit=crop',
-    items: [
-      'https://images.unsplash.com/photo-1555041469-a586c61ea9bc?w=100&h=100&fit=crop',
-      'https://images.unsplash.com/photo-1580480055273-228ff5388ef8?q=80&w=100&h=100&fit=crop',
-      'https://images.unsplash.com/photo-1586023492125-27b2c045efd7?q=80&w=100&h=100&fit=crop',
-      'https://images.unsplash.com/photo-1611042553365-9b101441c135?q=80&w=100&h=100&fit=crop'
-    ],
-    price: 38000,
-    discount: 8
-  },
-  {
-    id: 'dining',
-    name: 'Столовая',
-    image: 'https://images.unsplash.com/photo-1617806118233-682011157657?w=800&h=600&fit=crop',
-    items: [
-      'https://images.unsplash.com/photo-1555041469-a586c61ea9bc?w=100&h=100&fit=crop',
-      'https://images.unsplash.com/photo-1580480055273-228ff5388ef8?q=80&w=100&h=100&fit=crop',
-      'https://images.unsplash.com/photo-1586023492125-27b2c045efd7?q=80&w=100&h=100&fit=crop'
-    ],
-    price: 112000,
-    discount: 12
-  }
-]
+<script setup lang="ts">
+import { ref, onMounted } from 'vue'
+import { useCollections } from '~/composables/useCollections'
+import { useCart } from '~/composables/useCart'
+import type { Collection } from '~/composables/useCollections'
+
+const { collections, fetchCollections } = useCollections()
+const { addItem } = useCart()
+const loading = ref(true)
+
+onMounted(async () => {
+  await fetchCollections()
+  loading.value = false
+})
 
 const benefits = [
   {
     icon: '💰',
-    title: 'Экономия до 15%',
+    title: 'Экономия до 18%',
     description: 'При покупке комплекта вы экономите больше чем при покупке товаров по отдельности'
   },
   {
@@ -131,7 +42,7 @@ const benefits = [
     <!-- Hero Section -->
     <section class="h-[400px] md:h-[500px] flex flex-col items-center justify-center relative overflow-hidden">
       <div class="absolute inset-0 bg-black/30 z-10"></div>
-      <div class="absolute inset-0 bg-[url(\'https://images.unsplash.com/photo-1616486338812-3dadae4b4ace?w=1920&h=1080&fit=crop\')] bg-cover bg-center"></div>
+      <div class="absolute inset-0 bg-[url('https://images.unsplash.com/photo-1616486338812-3dadae4b4ace?w=1920&h=1080&fit=crop')] bg-cover bg-center"></div>
       
       <div class="container mx-auto px-4 text-center relative z-20">
         <h1 class="font-heading text-white text-4xl md:text-6xl leading-tight tracking-wider">
@@ -154,39 +65,52 @@ const benefits = [
       </div>
     </section>
 
-    <!-- Rooms Grid -->
-    <section class="py-16">
+    <!-- Loading state -->
+    <section v-if="loading" class="py-20">
+      <div class="container mx-auto px-4 text-center text-gray-400">Загрузка...</div>
+    </section>
+
+    <!-- Collections Grid -->
+    <section v-else class="py-16">
       <div class="container mx-auto px-4">
-        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-          <div v-for="room in rooms" :key="room.id" 
-               class="group relative rounded-2xl overflow-hidden border border-border cursor-pointer hover:shadow-xl transition-all duration-300">
-            <div class="relative h-[280px]">
-              <img :src="room.image" :alt="room.name" 
-                   class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105">
-              
-              <div class="absolute top-4 right-4 bg-red-500 text-white px-4 py-1 rounded-full text-sm font-medium">
-                -{{ room.discount }}%
+        <div v-if="collections.length === 0" class="text-center py-20 text-gray-400">
+          Нет доступных коллекций
+        </div>
+        <div v-else class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-[60px]">
+          <NuxtLink
+            :to="`/collection/${col.slug}`"
+            v-for="col in collections"
+            :key="col.id"
+            class="group cursor-pointer block"
+          >
+            <div class="relative overflow-hidden">
+              <img
+                :src="col.image"
+                :alt="col.name"
+                class="w-full h-[320px] object-cover transition-transform duration-500 group-hover:scale-105"
+              />
+              <div v-if="col.discount > 0" class="absolute top-3 left-3 bg-primary/90 text-white text-[10px] uppercase tracking-wider px-3 py-1 rounded-full font-body">
+                -{{ col.discount }}%
               </div>
-            </div>
-            
-            <div class="p-6">
-              <h3 class="font-heading text-textMain text-2xl mb-4">{{ room.name }}</h3>
-              
-              <div class="flex items-center gap-2 mb-4">
-                <img v-for="item in room.items" :key="item" 
-                     :src="item" class="w-10 h-10 rounded-lg object-cover border border-border">
-              </div>
-              
-              <div class="flex items-center justify-between">
-                <div>
-                  <div class="font-heading text-primary text-2xl">от {{ room.price.toLocaleString('ru-RU') }} ₽</div>
-                </div>
-                <button class="bg-primary text-white px-6 py-3 rounded-full font-medium opacity-0 group-hover:opacity-100 transition-opacity">
+              <div class="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-colors duration-300 flex items-center justify-center">
+                <span class="text-white font-body text-sm uppercase tracking-wider opacity-0 group-hover:opacity-100 transition-opacity duration-300 bg-primary px-6 py-3 rounded-full">
                   Собрать комплект
-                </button>
+                </span>
               </div>
             </div>
-          </div>
+            <div class="pt-4">
+              <h3 class="font-heading text-textMain text-xl">{{ col.name }}</h3>
+              <div class="flex items-center gap-2 mt-2">
+                <img v-for="(item, i) in (col.products || []).slice(0, 5)" :key="i"
+                     :src="item.image" class="w-8 h-8 rounded-full object-cover border border-border"
+                     :title="item.name">
+              </div>
+              <div class="flex items-center gap-3 mt-2">
+                <span class="font-body text-primary text-lg font-medium">{{ (col.setPrice || 0).toLocaleString('ru-RU') }} ₽</span>
+                <span v-if="col.discount > 0" class="font-body text-sm text-gray-400 line-through">{{ (col.totalPrice || 0).toLocaleString('ru-RU') }} ₽</span>
+              </div>
+            </div>
+          </NuxtLink>
         </div>
       </div>
     </section>
@@ -206,12 +130,5 @@ const benefits = [
         </div>
       </div>
     </section>
-
-    <!-- Footer -->
-    <footer class="bg-primary py-16">
-      <div class="container mx-auto px-4 text-center">
-        <h2 class="font-heading text-textMain text-5xl">CLICKWOOD</h2>
-      </div>
-    </footer>
   </main>
 </template>

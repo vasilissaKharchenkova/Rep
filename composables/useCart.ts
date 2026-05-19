@@ -7,6 +7,8 @@ export interface CartItem {
   price: number
   quantity: number
   image: string
+  colorName?: string
+  colorClass?: string
 }
 
 const cart = ref<CartItem[]>([])
@@ -32,7 +34,7 @@ export const useCart = () => {
   }
 
   const addItem = (item: Omit<CartItem, 'quantity'>) => {
-    const existingItem = cart.value.find(i => i.id === item.id)
+    const existingItem = cart.value.find(i => i.id === item.id && i.colorName === item.colorName)
     
     if (existingItem) {
       existingItem.quantity += 1
@@ -43,17 +45,17 @@ export const useCart = () => {
     saveCart()
   }
 
-  const removeItem = (id: number) => {
-    cart.value = cart.value.filter(item => item.id !== id)
+  const removeItem = (id: number, colorName?: string) => {
+    cart.value = cart.value.filter(item => item.id !== id || (colorName && item.colorName !== colorName))
     saveCart()
   }
 
-  const updateQuantity = (id: number, quantity: number) => {
-    const item = cart.value.find(i => i.id === id)
+  const updateQuantity = (id: number, quantity: number, colorName?: string) => {
+    const item = cart.value.find(i => i.id === id && i.colorName === colorName)
     
     if (item) {
       if (quantity < 1) {
-        removeItem(id)
+        removeItem(id, colorName)
       } else {
         item.quantity = quantity
         saveCart()
@@ -64,6 +66,17 @@ export const useCart = () => {
   const clearCart = () => {
     cart.value = []
     saveCart()
+  }
+
+  const submitOrder = async (deliveryAddress: string, comment: string) => {
+    const { useAuth } = await import('./useAuth')
+    const { authFetch } = useAuth()
+    const order = await authFetch('/api/orders', {
+      method: 'POST',
+      body: { items: cart.value, deliveryAddress, comment }
+    })
+    clearCart()
+    return order
   }
 
   const totalItems = computed(() => {
@@ -86,6 +99,7 @@ export const useCart = () => {
     removeItem,
     updateQuantity,
     clearCart,
+    submitOrder,
     totalItems,
     totalPrice
   }

@@ -15,8 +15,29 @@ useHead({
 </template>
 
 <style>
-@import url('https://fonts.googleapis.com/css2?family=Arsenal+SC:wght@400;700&display=swap');
-@import url('https://fonts.googleapis.com/css2?family=Roscha&display=swap');
+@font-face {
+  font-family: 'Roscha';
+  src: url('/fonts/ofont.ru_Roscha.ttf') format('truetype');
+  font-weight: normal;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Arsenal SC';
+  src: url('/fonts/ArsenalSC-Regular.ttf') format('truetype');
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Arsenal SC';
+  src: url('/fonts/ArsenalSC-Bold.ttf') format('truetype');
+  font-weight: 700;
+  font-style: normal;
+  font-display: swap;
+}
 
 * {
   box-sizing: border-box;

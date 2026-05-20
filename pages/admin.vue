@@ -24,7 +24,7 @@ onMounted(async () => {
 })
 
 // ─── Active tab ──────────────────────────────
-const activeTab = ref<'dashboard' | 'products' | 'orders' | 'reviews' | 'collections'>('dashboard')
+const activeTab = ref<'dashboard' | 'products' | 'orders' | 'reviews' | 'collections' | 'order-detail'>('dashboard')
 
 // ═══════════════════════════════════════════════
 //  DASHBOARD TAB
@@ -225,6 +225,29 @@ async function updateOrderStatus(orderId: string, status: string) {
     const o = orders.value.find(o => o._id === orderId)
     if (o) o.status = status
   } catch {}
+}
+
+// ─── Order detail sub-view ────────────────
+const selectedOrder = ref<any | null>(null)
+
+function openOrderDetail(order: any) {
+  selectedOrder.value = order
+  activeTab.value = 'order-detail'
+}
+
+function closeOrderDetail() {
+  selectedOrder.value = null
+  activeTab.value = 'orders'
+}
+
+function formatDate(dateStr: string) {
+  return new Date(dateStr).toLocaleDateString('ru-RU', {
+    day: 'numeric',
+    month: 'long',
+    year: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit'
+  })
 }
 
 // ═══════════════════════════════════════════════
@@ -589,32 +612,45 @@ const colors = [
           Нет заказов
         </div>
 
-        <div v-else class="space-y-4">
-          <div v-for="order in orders" :key="order._id" class="bg-white rounded-xl border border-border p-6">
-            <div class="flex items-center justify-between mb-4">
-              <div>
-                <span class="font-heading text-lg text-textMain">Заказ #{{ order._id?.slice(-6) }}</span>
-                <span class="text-sm text-gray-400 ml-4">{{ new Date(order.createdAt).toLocaleDateString('ru-RU') }}</span>
-              </div>
-              <select :value="order.status" @change="updateOrderStatus(order._id, ($event.target as HTMLSelectElement).value)"
-                      class="px-3 py-2 border border-border rounded-lg text-sm bg-white">
-                <option v-for="s in statusOptions" :key="s" :value="s">{{ statusLabels[s] }}</option>
-              </select>
-            </div>
-            <div class="text-sm text-gray-400 mb-2">
-              Клиент: {{ order.userId?.phone || '—' }} ({{ order.userId?.firstName || '' }} {{ order.userId?.lastName || '' }})
-            </div>
-            <div class="text-sm text-gray-400 mb-2">Адрес: {{ order.deliveryAddress || '—' }}</div>
-            <div class="text-sm text-gray-400">Комментарий: {{ order.comment || '—' }}</div>
-            <div class="mt-4 border-t border-border pt-4">
-              <div v-for="item in order.items" :key="item.article" class="flex items-center gap-3 text-sm py-1">
-                <span class="text-textMain">{{ item.name }}</span>
-                <span class="text-gray-400">× {{ item.quantity }}</span>
-                <span class="text-gray-400">{{ formatPrice(item.price) }} ₽</span>
-              </div>
-              <div class="font-heading text-textMain mt-2">Итого: {{ formatPrice(order.totalPrice) }} ₽</div>
-            </div>
-          </div>
+        <div v-else class="bg-white rounded-xl border border-border overflow-hidden">
+          <table class="w-full">
+            <thead class="bg-gray-50">
+              <tr>
+                <th class="text-left px-6 py-4 text-sm font-body text-gray-400">Заказ</th>
+                <th class="text-left px-6 py-4 text-sm font-body text-gray-400">Клиент</th>
+                <th class="text-left px-6 py-4 text-sm font-body text-gray-400">Сумма</th>
+                <th class="text-left px-6 py-4 text-sm font-body text-gray-400">Статус</th>
+                <th class="text-right px-6 py-4 text-sm font-body text-gray-400">Действия</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr v-for="order in orders" :key="order._id" class="border-t border-border hover:bg-gray-50">
+                <td class="px-6 py-4">
+                  <div class="font-body text-sm text-textMain">#{{ order._id?.slice(-6) }}</div>
+                  <div class="text-xs text-gray-400">{{ new Date(order.createdAt).toLocaleDateString('ru-RU') }}</div>
+                </td>
+                <td class="px-6 py-4">
+                  <div class="font-body text-sm text-textMain">{{ order.firstName }} {{ order.lastName }}</div>
+                  <div class="text-xs text-gray-400">{{ order.phone }}</div>
+                </td>
+                <td class="px-6 py-4 font-body text-sm">{{ formatPrice(order.totalPrice) }} ₽</td>
+                <td class="px-6 py-4">
+                  <select :value="order.status" @change="updateOrderStatus(order._id, ($event.target as HTMLSelectElement).value)"
+                          class="px-3 py-2 border border-border rounded-lg text-sm bg-white">
+                    <option v-for="s in statusOptions" :key="s" :value="s">{{ statusLabels[s] }}</option>
+                  </select>
+                </td>
+                <td class="px-6 py-4 text-right">
+                  <button
+                    @click="openOrderDetail(order)"
+                    class="px-4 py-2 bg-primary text-white rounded-lg text-sm hover:bg-primaryDark transition-colors cursor-pointer border-none"
+                  >
+                    Подробнее
+                  </button>
+                </td>
+              </tr>
+            </tbody>
+          </table>
         </div>
       </div>
 
@@ -644,6 +680,126 @@ const colors = [
             <div class="text-xs text-gray-400 mt-2">{{ new Date(review.createdAt).toLocaleDateString('ru-RU') }}</div>
           </div>
         </div>
+      </div>
+
+      <!-- ══════════════════════════════════════ -->
+      <!--  ORDER DETAIL TAB                     -->
+      <!-- ══════════════════════════════════════ -->
+      <div v-if="activeTab === 'order-detail' && selectedOrder" class="max-w-4xl">
+        <!-- Back button -->
+        <button
+          @click="closeOrderDetail"
+          class="mb-6 flex items-center gap-2 text-sm text-gray-400 hover:text-textMain transition-colors cursor-pointer border-none bg-transparent"
+        >
+          <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <polyline points="15 18 9 12 15 6" />
+          </svg>
+          Назад к списку заказов
+        </button>
+
+        <!-- Header -->
+        <div class="flex items-center justify-between mb-8">
+          <div>
+            <h2 class="font-heading text-textMain text-2xl">Заказ #{{ selectedOrder._id?.slice(-6) }}</h2>
+            <p class="font-body text-sm text-gray-400 mt-1">Создан {{ formatDate(selectedOrder.createdAt) }}</p>
+          </div>
+          <div class="flex items-center gap-3">
+            <label class="text-sm font-body text-gray-400">Статус:</label>
+            <select
+              :value="selectedOrder.status"
+              @change="updateOrderStatus(selectedOrder._id, ($event.target as HTMLSelectElement).value)"
+              class="px-4 py-2 border border-border rounded-lg text-sm bg-white"
+            >
+              <option v-for="s in statusOptions" :key="s" :value="s">{{ statusLabels[s] }}</option>
+            </select>
+          </div>
+        </div>
+
+        <!-- Client info -->
+        <section class="bg-white rounded-xl border border-border p-6 mb-6">
+          <h3 class="font-heading text-textMain text-lg mb-4">👤 Данные клиента</h3>
+          <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+            <div>
+              <p class="text-[11px] uppercase tracking-widest text-gray-400 font-body">Имя</p>
+              <p class="font-body text-textMain mt-1">{{ selectedOrder.firstName }}</p>
+            </div>
+            <div>
+              <p class="text-[11px] uppercase tracking-widest text-gray-400 font-body">Фамилия</p>
+              <p class="font-body text-textMain mt-1">{{ selectedOrder.lastName }}</p>
+            </div>
+            <div>
+              <p class="text-[11px] uppercase tracking-widest text-gray-400 font-body">Телефон</p>
+              <p class="font-body text-textMain mt-1">{{ selectedOrder.phone }}</p>
+            </div>
+            <div>
+              <p class="text-[11px] uppercase tracking-widest text-gray-400 font-body">Email</p>
+              <p class="font-body text-textMain mt-1">{{ selectedOrder.email }}</p>
+            </div>
+          </div>
+          <div v-if="selectedOrder.userId" class="mt-4 pt-4 border-t border-border">
+            <p class="text-[11px] uppercase tracking-widest text-gray-400 font-body">Авторизованный пользователь</p>
+            <p class="font-body text-textMain mt-1">
+              {{ (selectedOrder.userId as any)?.firstName }} {{ (selectedOrder.userId as any)?.lastName }} — {{ (selectedOrder.userId as any)?.phone }}
+            </p>
+          </div>
+        </section>
+
+        <!-- Delivery -->
+        <section class="bg-white rounded-xl border border-border p-6 mb-6">
+          <h3 class="font-heading text-textMain text-lg mb-4">🚚 Доставка</h3>
+          <div>
+            <p class="text-[11px] uppercase tracking-widest text-gray-400 font-body">Адрес</p>
+            <p class="font-body text-textMain mt-1">{{ selectedOrder.deliveryAddress || '—' }}</p>
+          </div>
+          <div v-if="selectedOrder.comment" class="mt-4">
+            <p class="text-[11px] uppercase tracking-widest text-gray-400 font-body">Комментарий</p>
+            <p class="font-body text-textMain mt-1">{{ selectedOrder.comment }}</p>
+          </div>
+        </section>
+
+        <!-- Order items -->
+        <section class="bg-white rounded-xl border border-border p-6 mb-6">
+          <h3 class="font-heading text-textMain text-lg mb-4">📦 Состав заказа</h3>
+          <div class="space-y-4">
+            <div
+              v-for="item in selectedOrder.items"
+              :key="item.article"
+              class="flex items-center gap-4 p-4 bg-gray-50 rounded-xl"
+            >
+              <div class="w-20 h-20 rounded-lg overflow-hidden border border-border flex-shrink-0 bg-white">
+                <img :src="item.image" :alt="item.name" class="w-full h-full object-cover" />
+              </div>
+              <div class="flex-1 min-w-0">
+                <h4 class="font-body font-medium text-textMain">{{ item.name }}</h4>
+                <p class="text-xs text-gray-400 mt-0.5">Артикул: {{ item.article }}</p>
+                <p v-if="item.colorName" class="text-xs text-gray-400">Цвет: {{ item.colorName }}</p>
+                <div class="flex items-center gap-4 mt-2">
+                  <span class="font-body text-sm text-textMain">{{ item.quantity }} × {{ formatPrice(item.price) }} ₽</span>
+                  <span class="font-body text-sm font-medium text-primary">{{ formatPrice(item.price * item.quantity) }} ₽</span>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="mt-6 pt-4 border-t border-border flex items-center justify-between">
+            <span class="font-heading text-textMain text-lg">Итого</span>
+            <span class="font-heading text-primary text-2xl">{{ formatPrice(selectedOrder.totalPrice) }} ₽</span>
+          </div>
+        </section>
+
+        <!-- Timestamps -->
+        <section class="bg-white rounded-xl border border-border p-6">
+          <h3 class="font-heading text-textMain text-lg mb-4">🕐 Время</h3>
+          <div class="grid grid-cols-2 gap-4">
+            <div>
+              <p class="text-[11px] uppercase tracking-widest text-gray-400 font-body">Создан</p>
+              <p class="font-body text-textMain mt-1">{{ formatDate(selectedOrder.createdAt) }}</p>
+            </div>
+            <div>
+              <p class="text-[11px] uppercase tracking-widest text-gray-400 font-body">Обновлён</p>
+              <p class="font-body text-textMain mt-1">{{ formatDate(selectedOrder.updatedAt) }}</p>
+            </div>
+          </div>
+        </section>
       </div>
 
       <!-- ══════════════════════════════════════ -->

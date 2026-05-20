@@ -1,162 +1,74 @@
 # Implementation Plan
 
-Создание полноценного функционала коллекций (интерьерных решений) в админ-панели и на витрине сайта. Коллекции хранятся в MongoDB, ссылаются на существующие товары (Product), стоимость коллекции автоматически суммируется из цен товаров, админ может редактировать скидку и состав коллекции. Параллельно удаляются дублирующие страницы админки (orders, products, reviews), так как весь функционал уже есть в admin.vue.
+Fix the order creation bug (missing `productId` mapping), add contact data storage to orders, and build admin order detail view + API.
+
+The checkout flow currently fails because the frontend sends cart items with field `id` but the Mongoose schema requires `productId`. Additionally, no contact info (firstName, lastName, phone, email) is stored on the order, and the admin panel lacks a dedicated order detail view. The fix involves: (1) mapping `id` → `productId` on the client side before submission, (2) extending the Order model with contact fields, (3) updating API endpoints to accept and return those fields, (4) adding a server-side order detail API endpoint, (5) creating an admin order detail page, and (6) enhancing the admin orders tab with a detail button.
 
 [Types]
 
-Новые типы для коллекций в серверной и клиентской частях.
+Add `firstName`, `lastName`, `phone`, `email` fields to both the `IOrder` interface and the Mongoose `OrderSchema`.
 
-**Server Model (server/models/Collection.ts):**
-```typescript
-interface ICollectionItem {
-  productId: number  // ссылка на Product.id
-  quantity: number   // количество единиц этого товара (по умолчанию 1)
-}
+Updated `IOrderItem` (no changes needed — it already contains `productId`, `name`, `price`, `quantity`, `image`, `article`, `colorName?`, `colorClass?`).
 
-interface ICollection extends Document {
-  id: number           // автоинкремент
-  name: string         // название коллекции (например "Гостиная")
-  slug: string         // url-friendly идентификатор (living, bedroom, ...)
-  description: string  // краткое описание (для карточки в списке)
-  fullDescription: string // полное описание (на странице коллекции)
-  image: string        // главное изображение
-  items: ICollectionItem[] // товары в коллекции
-  discount: number     // скидка в процентах (0-100)
-  createdAt: Date
-  updatedAt: Date
-}
-```
-
-**Client Interface (composables/useCollections.ts):**
-```typescript
-interface CollectionItem {
-  productId: number
-  quantity: number
-  // Данные товара подгружаются отдельно через populate на сервере
-}
-
-interface Collection {
-  id: number
-  name: string
-  slug: string
-  description: string
-  fullDescription: string
-  image: string
-  items: CollectionItem[]
-  discount: number
-  // Вычисляемые поля
-  totalPrice: number       // сумма цен всех товаров
-  setPrice: number         // цена со скидкой
-  products: Product[]      // подгруженные товары
-}
-```
+Updated `IOrder`:
+- `firstName: string` (required)
+- `lastName: string` (required)
+- `phone: string` (required)
+- `email: string` (required)
+- Everything else unchanged
 
 [Files]
 
-Создаются новые файлы, модифицируются существующие, удаляются ненужные.
+Modify 7 files: 1 server model, 2 server API endpoints, 1 client composable, 1 client page, and 1 new server API endpoint + 1 new admin page.
 
-**Новые файлы:**
-1. `server/models/Collection.ts` — Mongoose модель коллекции
-2. `server/api/collections.get.ts` — GET /api/collections (список всех коллекций с подгруженными товарами)
-3. `server/api/collections/[slug].get.ts` — GET /api/collections/[slug] (одна коллекция с товарами)
-4. `server/api/collections/index.post.ts` — POST /api/collections (создание коллекции, admin)
-5. `server/api/collections/[slug].put.ts` — PUT /api/collections/[slug] (обновление, admin)
-6. `server/api/collections/[slug].delete.ts` — DELETE /api/collections/[slug] (удаление, admin)
-7. `composables/useCollections.ts` — composable для работы с коллекциями на клиенте
-
-**Модифицируемые файлы:**
-8. `pages/admin.vue` — добавлен таб "Коллекции" с полным CRUD
-9. `pages/collections.vue` — полностью переписан под динамические данные из API
-10. `pages/collection/[id].vue` — полностью переписан под динамическую загрузку из API
-
-**Удаляемые файлы:**
-11. `pages/admin/orders.vue` — дублирует таб "Заказы" в admin.vue
-12. `pages/admin/products.vue` — дублирует таб "Товары" в admin.vue
-13. `pages/admin/products/[id].vue` — дублирует inline-редактор в admin.vue
-14. `pages/admin/reviews.vue` — дублирует таб "Отзывы" в admin.vue
+- **`server/models/Order.ts`** — Add `firstName`, `lastName`, `phone`, `email` fields to `IOrder` interface and `OrderSchema`.
+- **`server/api/orders.post.ts`** — Accept `firstName`, `lastName`, `phone`, `email` from request body and save to order document.
+- **`composables/useCart.ts`** — Extend `submitOrder` signature to accept `items`, `deliveryAddress`, `comment`, `firstName`, `lastName`, `phone`, `email`. Map `id` → `productId` on each cart item before sending. Remove hardcoded `cart.value` reference and accept items as a parameter.
+- **`pages/checkout.vue`** — Update `handleSubmit` to pass all form fields to `submitOrder`. Pass `cart` items array explicitly with the `id` → `productId` mapping.
+- **`server/api/orders/[id].get.ts`** (NEW) — Create a new API endpoint that returns a single order by ID. Requires admin authentication. Uses `Order.findById(id).populate('userId', 'phone firstName lastName').lean()`.
+- **`pages/admin/order/[id].vue`** (NEW) — Create a new admin page that displays full order details: items with images, colors, quantities, prices; client contact info (name, phone, email); delivery address; status with editable dropdown; comment; timestamps.
+- **`pages/admin.vue`** — In the ORDERS tab, add a "Подробнее" / "Открыть" button next to each order that navigates to `/admin/order/${order._id}`. Keep the existing inline order cards but simplify them to a compact list.
 
 [Functions]
 
-**Серверные (API обработчики):**
-
-1. `server/api/collections.get.ts`:
-   - `defineEventHandler` — GET список коллекций
-   - Загружает коллекции, для каждой подгружает товары по `items[].productId`
-   - Вычисляет `totalPrice` = сумма `(product.price * item.quantity)` для каждого товара
-   - Вычисляет `setPrice` = `totalPrice * (1 - discount/100)`
-
-2. `server/api/collections/[slug].get.ts`:
-   - `defineEventHandler` — GET одной коллекции по slug
-   - Аналогично подгружает товары и вычисляет цены
-
-3. `server/api/collections/index.post.ts`:
-   - `defineEventHandler` — POST создание коллекции
-   - `adminGuard` — только для админа
-   - Автоинкремент id (аналогично Product)
-
-4. `server/api/collections/[slug].put.ts`:
-   - `defineEventHandler` — PUT обновление коллекции
-   - `adminGuard`
-   - Обновляет все поля, кроме id
-
-5. `server/api/collections/[slug].delete.ts`:
-   - `defineEventHandler` — DELETE удаление коллекции
-   - `adminGuard`
-
-**Клиентские (composable):**
-
-6. `composables/useCollections.ts`:
-   - `fetchCollections()` — загрузка списка коллекций
-   - `fetchCollection(slug)` — загрузка одной коллекции с товарами
-   - Возвращает объекты с `totalPrice` и `setPrice` уже вычисленными на сервере
-
-**В admin.vue (script setup):**
-7. `loadCollections()` — загрузка списка коллекций для таба
-8. `startNewCollection()` — подготовка формы для новой коллекции
-9. `startEditCollection(id)` — загрузка коллекции в форму
-10. `saveCollection()` — создание/обновление через API
-11. `deleteCollection(id)` — удаление
-12. `addCollectionItem()` — добавление товара в состав коллекции (по productId)
-13. `removeCollectionItem(index)` — удаление товара из состава
-
-**В pages/collections.vue:**
-14. Вызов `fetchCollections()` при монтировании
-15. Рендеринг списка динамически из полученных данных
-
-**В pages/collection/[id].vue:**
-16. Вызов `fetchCollection(route.params.id)` при монтировании
-17. Рендеринг детальной страницы с динамическими товарами и ценами
+- **`composables/useCart.ts` → `submitOrder`** (modified)
+  - Old signature: `submitOrder(deliveryAddress: string, comment: string) => Promise<any>`
+  - New signature: `submitOrder(items: CartItem[], deliveryAddress: string, comment: string, contact: { firstName: string, lastName: string, phone: string, email: string }) => Promise<any>`
+  - Old body: sends `{ items: cart.value, deliveryAddress, comment }`
+  - New body: maps `items` to replace `id` with `productId`, then sends `{ items: mappedItems, deliveryAddress, comment, ...contact }`, then calls `clearCart()`.
+- **`pages/checkout.vue` → `handleSubmit`** (modified)
+  - Before: `const order = await cartSubmitOrder(address, comment)`
+  - After: `const order = await cartSubmitOrder(cart, address, comment, { firstName: form.value.firstName, lastName: form.value.lastName, phone: form.value.phone, email: form.value.email })`
+- **`server/api/orders.post.ts`** (modified handler)
+  - Before: reads `body.items`, `body.deliveryAddress`, `body.comment` and creates order with those + computed `totalPrice`.
+  - After: additionally reads `body.firstName`, `body.lastName`, `body.phone`, `body.email` and includes them in `orderData`.
 
 [Classes]
 
-Нет классов. В проекте используется функциональный подход (Vue composition API + Nuxt server handlers).
+No class modifications required.
 
 [Dependencies]
 
-Новые зависимости не требуются. Используются существующие: mongoose, nuxt, vue.
+No new npm packages required. The project already uses `h3`, `mongoose`, `jsonwebtoken`, `vue`, `nuxt`.
 
 [Testing]
 
-Ручное тестирование:
-1. Открыть /admin — проверить, что все табы работают (dashboard, products, orders, reviews, collections)
-2. Создать коллекцию через админку: ввести название, slug, описание, изображение, выбрать товары из списка
-3. Проверить, что цена рассчитана автоматически = сумма товаров
-4. Установить скидку — цена со скидкой должна пересчитаться
-5. Отредактировать коллекцию (удалить товар, добавить другой)
-6. Проверить /collections — список коллекций загружается из БД
-7. Проверить /collection/:slug — детальная страница с товарами и ценами
-8. Работа кнопок "В корзину" для отдельных товаров и "Купить комплект"
-9. Проверить, что удалённые страницы admin/orders, admin/products, admin/reviews недоступны (404)
-10. Основная admin.vue не сломалась — табы products, orders, reviews продолжают работать
+1. Start the dev server and open checkout page with items in cart.
+2. Fill all form fields and submit. Verify the order is created without validation errors.
+3. Check MongoDB `orders` collection — verify `productId` is present on all items, and `firstName`, `lastName`, `phone`, `email` are stored.
+4. Navigate to admin panel → Orders tab. Verify each order has a "Подробнее" button.
+5. Click "Подробнее" on an order. Verify the detail page shows all item data, client info, delivery address, status, comment.
+6. Change order status on the detail page. Verify it updates and reflects in the orders list.
+7. Test with unauthenticated user — verify order creation still works (userId will be null, but contact fields will be filled).
 
 [Implementation Order]
 
-Изменения выполняются в указанном порядке для минимизации конфликтов.
+Single linear sequence — each step builds on the previous one without conflicts.
 
-1. Создать `server/models/Collection.ts` — Mongoose модель
-2. Создать API endpoints для коллекций (5 файлов: get, get/[slug], post, put/[slug], delete/[slug])
-3. Создать `composables/useCollections.ts` — клиентский composable
-4. Модифицировать `pages/admin.vue` — добавить таб "Коллекции" с inline-редактором
-5. Переписать `pages/collections.vue` — динамическая загрузка из API
-6. Переписать `pages/collection/[id].vue` — динамическая загрузка из API
-7. Удалить файлы: `pages/admin/orders.vue`, `pages/admin/products.vue`, `pages/admin/products/[id].vue`, `pages/admin/reviews.vue`
+1. Extend `server/models/Order.ts` with `firstName`, `lastName`, `phone`, `email` fields.
+2. Update `server/api/orders.post.ts` to accept and save contact fields.
+3. Update `composables/useCart.ts` — change `submitOrder` signature and add `id` → `productId` mapping.
+4. Update `pages/checkout.vue` — pass full contact data to `submitOrder`.
+5. Create `server/api/orders/[id].get.ts` — new API endpoint for single order by ID (admin only).
+6. Create `pages/admin/order/[id].vue` — new admin order detail page.
+7. Update `pages/admin.vue` — add "Подробнее" links to order cards.

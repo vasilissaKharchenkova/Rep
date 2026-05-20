@@ -16,6 +16,10 @@ export interface IOrder extends Document {
   items: IOrderItem[]
   totalPrice: number
   status: 'new' | 'processing' | 'shipped' | 'delivered' | 'cancelled'
+  firstName: string
+  lastName: string
+  phone: string
+  email: string
   deliveryAddress: string
   comment: string
   createdAt: Date
@@ -38,7 +42,7 @@ const OrderItemSchema = new Schema<IOrderItem>(
 
 const OrderSchema = new Schema<IOrder>(
   {
-    userId: { type: Schema.Types.ObjectId, ref: 'User', required: true },
+    userId: { type: Schema.Types.ObjectId, ref: 'User' },
     items: [OrderItemSchema],
     totalPrice: { type: Number, required: true },
     status: {
@@ -46,6 +50,10 @@ const OrderSchema = new Schema<IOrder>(
       enum: ['new', 'processing', 'shipped', 'delivered', 'cancelled'],
       default: 'new'
     },
+    firstName: { type: String, required: true },
+    lastName: { type: String, required: true },
+    phone: { type: String, required: true },
+    email: { type: String, required: true },
     deliveryAddress: { type: String, default: '' },
     comment: { type: String, default: '' }
   },

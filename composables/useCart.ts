@@ -68,12 +68,27 @@ export const useCart = () => {
     saveCart()
   }
 
-  const submitOrder = async (deliveryAddress: string, comment: string) => {
+  const submitOrder = async (
+    items: CartItem[],
+    deliveryAddress: string,
+    comment: string,
+    contact: { firstName: string; lastName: string; phone: string; email: string }
+  ) => {
     const { useAuth } = await import('./useAuth')
     const { authFetch } = useAuth()
+    const mappedItems = items.map(item => ({
+      productId: item.id,
+      name: item.name,
+      price: item.price,
+      quantity: item.quantity,
+      image: item.image,
+      article: item.article,
+      colorName: item.colorName,
+      colorClass: item.colorClass
+    }))
     const order = await authFetch('/api/orders', {
       method: 'POST',
-      body: { items: cart.value, deliveryAddress, comment }
+      body: { items: mappedItems, deliveryAddress, comment, ...contact }
     })
     clearCart()
     return order

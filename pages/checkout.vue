@@ -1,10 +1,12 @@
 <script setup lang="ts">
 import { ref, computed, nextTick, onMounted } from 'vue'
-import { useCart } from '~/composables/useCart'
+import { useRouter } from 'vue-router'
+import { useCart, type CartItem } from '~/composables/useCart'
 import { useAuth } from '~/composables/useAuth'
 
 // ─── Cart ────────────────────────────────────────
 
+const router = useRouter()
 const { cart, totalPrice, submitOrder: cartSubmitOrder } = useCart()
 const { isLoggedIn, user, fetchMe } = useAuth()
 
@@ -48,8 +50,6 @@ const form = ref<CheckoutForm>({
 
 const errors = ref<FormErrors>({})
 const isSubmitting = ref(false)
-const showSuccessModal = ref(false)
-const orderId = ref('')
 
 const deliveryMethods = [
   { id: 'courier' as const, name: 'Курьер', price: 500, description: 'Доставка курьером до двери' },
@@ -179,13 +179,6 @@ const formatPhone = () => {
   }
 }
 
-// ─── Generate order ID ───────────────────────────
-
-const generateOrderId = (): string => {
-  const num = Math.floor(100000 + Math.random() * 900000)
-  return `CLK-${num}`
-}
-
 // ─── Promocode ───────────────────────────────────
 
 const applyPromocode = () => {
@@ -214,9 +207,25 @@ const handleSubmit = async () => {
   try {
     const address = `${form.value.country}, ${form.value.city}, ${form.value.street}, кв. ${form.value.apartment}`
     const comment = form.value.comment || ''
-    const order = await cartSubmitOrder(address, comment)
-    orderId.value = order._id || generateOrderId()
-    showSuccessModal.value = true
+    const order = await cartSubmitOrder(
+      cart.value,
+      address,
+      comment,
+      {
+        firstName: form.value.firstName,
+        lastName: form.value.lastName,
+        phone: form.value.phone,
+        email: form.value.email
+      }
+    )
+    router.push({
+      path: '/success',
+      query: {
+        orderId: order._id,
+        totalPrice: order.totalPrice?.toString() || totalPrice.value.toString(),
+        createdAt: order.createdAt || new Date().toISOString()
+      }
+    })
   } catch (e: any) {
     const msg = e?.data?.statusMessage || 'Ошибка оформления заказа'
     alert(msg)
@@ -591,56 +600,10 @@ onMounted(async () => {
       </div>
     </div>
 
-    <!-- Success Modal -->
-    <Transition name="modal">
-      <div v-if="showSuccessModal" class="fixed inset-0 z-50 flex items-center justify-center bg-black/30 px-4">
-        <div class="bg-white rounded-2xl p-8 md:p-12 max-w-md w-full text-center shadow-2xl relative">
-          <div class="w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-6">
-            <svg class="w-8 h-8 text-primary" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-              <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14" />
-              <polyline points="22 4 12 14.01 9 11.01" />
-            </svg>
-          </div>
-          <h3 class="font-heading text-textMain text-2xl mb-2">Спасибо за заказ!</h3>
-          <p class="font-body text-textMain/70 mb-4">Ваш заказ успешно оформлен</p>
-          <div class="bg-gray-50 rounded-xl py-4 px-6 mb-6 inline-block">
-            <span class="text-[11px] uppercase tracking-widest text-gray-400 font-body block mb-1">Номер заказа</span>
-            <span class="font-heading text-primary text-2xl">{{ orderId }}</span>
-          </div>
-          <p class="font-body text-xs text-gray-400 mb-8">
-            Подтверждение заказа отправлено на {{ form.email }}
-          </p>
-          <NuxtLink
-            to="/"
-            class="block w-full py-3.5 bg-primary text-white rounded-xl font-body text-lg hover:bg-primaryDark transition-colors"
-          >
-            Вернуться на главную
-          </NuxtLink>
-        </div>
-      </div>
-    </Transition>
   </main>
 </template>
 
 <style scoped>
-/* Modal transition */
-.modal-enter-active,
-.modal-leave-active {
-  transition: all 0.3s ease;
-}
-.modal-enter-from {
-  opacity: 0;
-}
-.modal-enter-from > div {
-  transform: scale(0.9) translateY(20px);
-}
-.modal-leave-to {
-  opacity: 0;
-}
-.modal-leave-to > div {
-  transform: scale(0.9) translateY(20px);
-}
-
 /* Section appearance animation */
 [data-section] {
   animation: fadeUp 0.4s ease both;

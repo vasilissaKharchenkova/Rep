@@ -19,6 +19,10 @@ export default defineEventHandler(async (event) => {
     items: body.items,
     totalPrice,
     status: 'new',
+    firstName: body.firstName,
+    lastName: body.lastName,
+    phone: body.phone,
+    email: body.email,
     deliveryAddress: body.deliveryAddress || '',
     comment: body.comment || ''
   }

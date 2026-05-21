@@ -60,7 +60,8 @@ const productForm = ref({
   image: '',
   images: [] as string[],
   description: '',
-  characteristics: ''
+  characteristics: '',
+  colorVariants: [] as { name: string; color: string; image: string; images: string[] }[]
 })
 
 async function loadProducts() {
@@ -83,7 +84,8 @@ function startNewProduct() {
     image: '',
     images: [],
     description: '',
-    characteristics: ''
+    characteristics: '',
+    colorVariants: []
   }
 }
 
@@ -103,7 +105,13 @@ async function startEditProduct(id: number) {
       image: p.image || '',
       images: p.images || [],
       description: p.description || '',
-      characteristics: p.characteristics || ''
+      characteristics: p.characteristics || '',
+      colorVariants: (p.colorVariants || []).map((v: any) => ({
+        name: v.name || '',
+        color: v.color || '',
+        image: v.image || '',
+        images: v.images || []
+      }))
     }
   } catch {}
 }
@@ -174,6 +182,65 @@ const addImageUrl = () => {
   if (!url) return
   productForm.value.images.push(url)
   newImageUrl.value = ''
+}
+
+// ─── Color variant helpers ──────────────
+function addColorVariant() {
+  productForm.value.colorVariants.push({ name: '', color: '', image: '', images: [] })
+}
+
+function removeColorVariant(index: number) {
+  productForm.value.colorVariants.splice(index, 1)
+}
+
+const uploadingVariantImage = ref<number | null>(null)
+const newVariantImageUrl = ref('')
+
+async function uploadVariantMainImage(index: number, files: FileList | null) {
+  if (!files || files.length === 0) return
+  uploadingVariantImage.value = index
+  try {
+    const fd = new FormData()
+    fd.append('images', files[0])
+    const result: any = await authFetch('/api/upload', { method: 'POST', body: fd })
+    if (result?.urls?.[0]) {
+      productForm.value.colorVariants[index].image = result.urls[0]
+    }
+  } catch (e: any) {
+    alert(e?.data?.statusMessage || 'Ошибка загрузки изображения')
+  } finally {
+    uploadingVariantImage.value = null
+  }
+}
+
+async function uploadVariantImages(index: number, files: FileList | null) {
+  if (!files || files.length === 0) return
+  uploadingVariantImage.value = index
+  try {
+    const fd = new FormData()
+    for (const file of files) {
+      fd.append('images', file)
+    }
+    const result: any = await authFetch('/api/upload', { method: 'POST', body: fd })
+    if (result?.urls) {
+      productForm.value.colorVariants[index].images.push(...result.urls)
+    }
+  } catch (e: any) {
+    alert(e?.data?.statusMessage || 'Ошибка загрузки изображений')
+  } finally {
+    uploadingVariantImage.value = null
+  }
+}
+
+function removeVariantImage(variantIndex: number, imageIndex: number) {
+  productForm.value.colorVariants[variantIndex].images.splice(imageIndex, 1)
+}
+
+function addVariantImageUrl(variantIndex: number) {
+  const url = newVariantImageUrl.value.trim()
+  if (!url) return
+  productForm.value.colorVariants[variantIndex].images.push(url)
+  newVariantImageUrl.value = ''
 }
 
 async function saveProduct() {
@@ -548,6 +615,54 @@ const colors = [
               <label class="text-sm font-body text-gray-400 block mb-1">Характеристики</label>
               <textarea v-model="productForm.characteristics" rows="4" class="w-full px-4 py-3 border border-border rounded-xl"></textarea>
             </div>
+            <!-- Color Variants Editor -->
+            <div>
+              <label class="text-sm font-body text-gray-400 block mb-2">Цветовые варианты</label>
+              <div v-for="(variant, vIndex) in productForm.colorVariants" :key="vIndex" class="mb-4 p-4 bg-gray-50 border border-border rounded-xl">
+                <div class="flex items-center justify-between mb-3">
+                  <span class="text-sm font-body text-textMain font-medium">Вариант {{ vIndex + 1 }}</span>
+                  <button type="button" @click="removeColorVariant(vIndex)" class="text-red-500 hover:text-red-700 text-sm border-none bg-transparent cursor-pointer">× Удалить</button>
+                </div>
+                <div class="grid grid-cols-2 gap-4 mb-3">
+                  <div>
+                    <label class="text-xs text-gray-400 block mb-1">Название цвета</label>
+                    <input v-model="variant.name" placeholder="Орех, Венге..." class="w-full px-3 py-2 border border-border rounded-lg text-sm" />
+                  </div>
+                  <div>
+                    <label class="text-xs text-gray-400 block mb-1">HEX-код цвета (#92400e)</label>
+                    <input v-model="variant.color" placeholder="#92400e" class="w-full px-3 py-2 border border-border rounded-lg text-sm" />
+                  </div>
+                </div>
+                <div class="mb-3">
+                  <label class="text-xs text-gray-400 block mb-1">Главное изображение цвета</label>
+                  <div v-if="variant.image" class="mb-2">
+                    <img :src="variant.image" class="w-16 h-16 object-cover rounded-lg border border-border" />
+                  </div>
+                  <div class="flex gap-2">
+                    <input type="file" accept="image/*" @change="uploadVariantMainImage(vIndex, ($event.target as HTMLInputElement).files)" class="flex-1 px-3 py-2 border border-border rounded-lg text-sm file:mr-3 file:py-1 file:px-3 file:rounded-lg file:border-0 file:bg-primary file:text-white file:cursor-pointer file:text-xs" />
+                    <input v-model="variant.image" placeholder="или URL" class="flex-1 px-3 py-2 border border-border rounded-lg text-sm" />
+                  </div>
+                </div>
+                <div>
+                  <label class="text-xs text-gray-400 block mb-1">Галерея цвета</label>
+                  <div class="flex flex-wrap gap-2 mb-2">
+                    <div v-for="(img, imgIndex) in variant.images" :key="imgIndex" class="relative">
+                      <img :src="img" class="w-14 h-14 object-cover rounded-lg border border-border" />
+                      <button type="button" @click="removeVariantImage(vIndex, imgIndex)" class="absolute -top-1.5 -right-1.5 w-5 h-5 bg-red-500 text-white rounded-full text-xs flex items-center justify-center cursor-pointer border-none">×</button>
+                    </div>
+                  </div>
+                  <div class="flex gap-2">
+                    <input type="file" multiple accept="image/*" @change="uploadVariantImages(vIndex, ($event.target as HTMLInputElement).files)" class="flex-1 px-3 py-2 border border-border rounded-lg text-sm file:mr-3 file:py-1 file:px-3 file:rounded-lg file:border-0 file:bg-primary file:text-white file:cursor-pointer file:text-xs" />
+                    <input v-model="newVariantImageUrl" placeholder="или URL" class="flex-1 px-3 py-2 border border-border rounded-lg text-sm" @keyup.enter="addVariantImageUrl(vIndex)" />
+                    <button type="button" @click="addVariantImageUrl(vIndex)" class="px-3 py-2 bg-primary text-white rounded-lg text-xs hover:bg-primary/90 cursor-pointer border-none">+</button>
+                  </div>
+                </div>
+              </div>
+              <button type="button" @click="addColorVariant" class="px-4 py-2 border border-primary text-primary rounded-lg hover:bg-primary/5 cursor-pointer bg-transparent text-sm">
+                + Добавить вариант цвета
+              </button>
+            </div>
+
             <div class="flex gap-4 pt-4">
               <button type="submit" :disabled="saving" class="px-8 py-3 bg-primary text-white rounded-xl hover:bg-primary/90 disabled:opacity-50 cursor-pointer border-none">
                 {{ saving ? 'Сохранение...' : 'Сохранить' }}

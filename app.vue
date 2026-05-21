@@ -7,7 +7,7 @@ useHead({
 </script>
 
 <template>
-  <div>
+  <div class="min-h-screen flex flex-col">
     <NuxtLayout>
       <NuxtPage />
     </NuxtLayout>
@@ -15,6 +15,18 @@ useHead({
 </template>
 
 <style>
+/* Page transitions */
+.page-enter-active,
+.page-leave-active {
+  transition: opacity 0.2s ease;
+}
+.page-enter-from {
+  opacity: 0;
+}
+.page-leave-to {
+  opacity: 0;
+}
+
 @font-face {
   font-family: 'Roscha';
   src: url('/fonts/ofont.ru_Roscha.ttf') format('truetype');

@@ -32,7 +32,17 @@ onMounted(async () => {
 })
 
 const addItemToCart = (item: { id: number; name: string; price: number; image: string; article: string }) => {
-  addItem({ id: item.id, name: item.name, price: item.price, image: item.image, article: item.article })
+  const discount = collection.value?.discount || 0
+  const discountedPrice = discount > 0 ? Math.round(item.price * (1 - discount / 100)) : item.price
+  addItem({
+    id: item.id,
+    name: item.name,
+    price: discountedPrice,
+    image: item.image,
+    article: item.article,
+    originalPrice: discount > 0 ? item.price : undefined,
+    collectionSlug: collection.value?.slug
+  })
   itemAddedMessages.value[item.id] = true
   setTimeout(() => {
     itemAddedMessages.value[item.id] = false
@@ -41,13 +51,17 @@ const addItemToCart = (item: { id: number; name: string; price: number; image: s
 
 const addAllToCart = () => {
   if (!collection.value?.products) return
+  const discount = collection.value.discount || 0
   collection.value.products.forEach(product => {
+    const discountedPrice = discount > 0 ? Math.round(product.price * (1 - discount / 100)) : product.price
     addItem({
       id: product.id,
       name: product.name,
-      price: product.price,
+      price: discountedPrice,
       image: product.image,
-      article: product.article
+      article: product.article,
+      originalPrice: discount > 0 ? product.price : undefined,
+      collectionSlug: collection.value?.slug
     })
   })
   addedToCart.value = true

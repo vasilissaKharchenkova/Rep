@@ -26,15 +26,6 @@ const styles = [
   { id: 'artdeco', name: 'ар деко' }
 ]
 
-const colors = [
-  { id: 'all', name: 'любой', hex: 'transparent', border: true },
-  { id: 'white', name: 'белый', hex: '#F5F5F0' },
-  { id: 'brown', name: 'коричневый', hex: '#8B7355' },
-  { id: 'gray', name: 'серый', hex: '#9E9E9E' },
-  { id: 'black', name: 'чёрный', hex: '#2C2C2C' },
-  { id: 'green', name: 'зелёный', hex: '#5B7B5E' }
-]
-
 const sortOptions = [
   { id: 'default', name: 'по умолчанию' },
   { id: 'price-asc', name: 'цена ↑' },
@@ -46,7 +37,7 @@ const sortOptions = [
 
 const activeCategoryId = ref('all')
 const activeStyleId = ref('all')
-const activeColorId = ref('all')
+const activeColorHex = ref('')
 const activePriceMin = ref(0)
 const activePriceMax = ref(150000)
 const onlyInStock = ref(false)
@@ -56,6 +47,20 @@ const gridColumns = ref(3)
 const activeDropdown = ref(null)
 
 // ─── Computed ────────────────────────────────
+
+const availableColors = computed(() => {
+  const map = new Map()
+  for (const p of products.value) {
+    if (p.colorVariants) {
+      for (const v of p.colorVariants) {
+        if (v.color && !map.has(v.color)) {
+          map.set(v.color, v.name || v.color)
+        }
+      }
+    }
+  }
+  return Array.from(map.entries()).map(([color, name]) => ({ color, name }))
+})
 
 const activeCategoryName = computed(() => {
   const cat = categories.find(c => c.id === activeCategoryId.value)
@@ -68,8 +73,9 @@ const activeStyleName = computed(() => {
 })
 
 const activeColorName = computed(() => {
-  const c = colors.find(col => col.id === activeColorId.value)
-  return c ? c.name : 'любой'
+  if (!activeColorHex.value) return 'любой'
+  const c = availableColors.value.find(col => col.color === activeColorHex.value)
+  return c ? c.name : activeColorHex.value
 })
 
 onMounted(() => {
@@ -88,8 +94,8 @@ const filteredProducts = computed(() => {
     result = result.filter(p => p.styleId === activeStyleId.value)
   }
   // color
-  if (activeColorId.value !== 'all') {
-    result = result.filter(p => p.color === activeColorId.value)
+  if (activeColorHex.value) {
+    result = result.filter(p => p.colorVariants?.some(v => v.color === activeColorHex.value))
   }
   // price
   result = result.filter(p => p.price >= activePriceMin.value && p.price <= activePriceMax.value)
@@ -124,8 +130,8 @@ const selectStyle = (id) => {
   activeDropdown.value = null
 }
 
-const selectColor = (id) => {
-  activeColorId.value = id
+const selectColor = (hex) => {
+  activeColorHex.value = activeColorHex.value === hex ? '' : hex
   activeDropdown.value = null
 }
 
@@ -140,7 +146,7 @@ const toggleGrid = (cols) => {
 const resetAllFilters = () => {
   activeCategoryId.value = 'all'
   activeStyleId.value = 'all'
-  activeColorId.value = 'all'
+  activeColorHex.value = ''
   activePriceMin.value = 0
   activePriceMax.value = 150000
   onlyInStock.value = false
@@ -150,7 +156,7 @@ const resetAllFilters = () => {
 const hasActiveFilters = computed(() => {
   return activeCategoryId.value !== 'all'
     || activeStyleId.value !== 'all'
-    || activeColorId.value !== 'all'
+    || !!activeColorHex.value
     || activePriceMin.value > 0
     || activePriceMax.value < 150000
     || onlyInStock.value
@@ -293,10 +299,10 @@ if (typeof window !== 'undefined') {
               <button
                 @click.stop="toggleDropdown('color')"
                 class="flex items-center gap-2 px-4 py-2.5 border border-border rounded text-sm font-body text-textMain hover:border-primary transition-colors cursor-pointer bg-white"
-                :class="{ 'border-primary': activeColorId !== 'all' }"
+                :class="{ 'border-primary': !!activeColorHex }"
               >
                 <span class="uppercase text-[11px] tracking-wider text-gray-400">Цвет</span>
-                <span v-if="activeColorId !== 'all'" class="inline-block w-4 h-4 rounded-full border border-border" :style="{ backgroundColor: colors.find(c => c.id === activeColorId)?.hex }"></span>
+                <span v-if="activeColorHex" class="inline-block w-4 h-4 rounded-full border border-border" :style="{ backgroundColor: activeColorHex }"></span>
                 <span class="text-textMain font-medium">{{ activeColorName }}</span>
                 <svg :class="{ 'rotate-180': activeDropdown === 'color' }" class="w-3 h-3 ml-1 transition-transform" viewBox="0 0 10 6" fill="none">
                   <path d="M1 1L5 5L9 1" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
@@ -304,22 +310,30 @@ if (typeof window !== 'undefined') {
               </button>
               <Transition name="dropdown">
                 <div v-if="activeDropdown === 'color'" class="absolute top-full left-0 mt-1 w-56 bg-white border border-border rounded-lg shadow-lg z-50 p-4">
+                  <!-- All colors option -->
                   <button
-                    v-for="col in colors"
-                    :key="col.id"
-                    @click="selectColor(col.id)"
+                    @click="selectColor('')"
                     class="w-full flex items-center gap-3 px-3 py-2 rounded text-sm font-body transition-colors hover:bg-gray-50 cursor-pointer border-none bg-transparent"
-                    :class="{ 'text-primary font-medium': col.id === activeColorId, 'text-textMain': col.id !== activeColorId }"
+                    :class="{ 'text-primary font-medium': !activeColorHex, 'text-textMain': !!activeColorHex }"
                   >
-                    <span
-                      class="w-5 h-5 rounded-full border flex-shrink-0"
-                      :class="{ 'border-gray-300': col.id === 'all', 'border-border': col.id !== 'all' }"
-                      :style="col.hex === 'transparent' ? {} : { backgroundColor: col.hex }"
-                    >
-                      <svg v-if="col.id === 'all'" class="w-full h-full p-1 text-gray-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <span class="w-5 h-5 rounded-full border border-gray-300 flex-shrink-0 flex items-center justify-center">
+                      <svg class="w-full h-full p-1 text-gray-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                         <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
                       </svg>
                     </span>
+                    Любой
+                  </button>
+                  <button
+                    v-for="col in availableColors"
+                    :key="col.color"
+                    @click="selectColor(col.color)"
+                    class="w-full flex items-center gap-3 px-3 py-2 rounded text-sm font-body transition-colors hover:bg-gray-50 cursor-pointer border-none bg-transparent"
+                    :class="{ 'text-primary font-medium': col.color === activeColorHex, 'text-textMain': col.color !== activeColorHex }"
+                  >
+                    <span
+                      class="w-5 h-5 rounded-full border border-border flex-shrink-0"
+                      :style="{ backgroundColor: col.color }"
+                    ></span>
                     {{ col.name }}
                   </button>
                 </div>
@@ -506,12 +520,22 @@ if (typeof window !== 'undefined') {
               <label class="text-[11px] uppercase tracking-wider text-gray-400 block mb-2">Цвет</label>
               <div class="flex gap-2 flex-wrap">
                 <button
-                  v-for="col in colors"
-                  :key="col.id"
-                  @click="selectColor(col.id)"
+                  @click="selectColor('')"
+                  class="w-8 h-8 rounded-full border-2 transition-all cursor-pointer border-gray-300 flex items-center justify-center"
+                  :class="!activeColorHex ? 'border-primary scale-110' : 'border-border'"
+                  title="Любой"
+                >
+                  <svg class="w-4 h-4 text-gray-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+                  </svg>
+                </button>
+                <button
+                  v-for="col in availableColors"
+                  :key="col.color"
+                  @click="selectColor(col.color)"
                   class="w-8 h-8 rounded-full border-2 transition-all cursor-pointer"
-                  :class="col.id === activeColorId ? 'border-primary scale-110' : 'border-border'"
-                  :style="col.hex === 'transparent' ? { background: 'white' } : { backgroundColor: col.hex }"
+                  :class="col.color === activeColorHex ? 'border-primary scale-110' : 'border-border'"
+                  :style="{ backgroundColor: col.color }"
                   :title="col.name"
                 ></button>
               </div>
@@ -576,7 +600,7 @@ if (typeof window !== 'undefined') {
               <h3 class="font-body text-textMain text-sm uppercase tracking-wider">{{ product.name }}</h3>
               <p class="font-body text-textMain mt-1 text-sm">{{ product.price.toLocaleString('ru-RU') }} ₽</p>
               <div class="flex items-center gap-1.5 mt-1.5">
-                <span class="w-3 h-3 rounded-full inline-block border border-border" :style="{ backgroundColor: colors.find(c => c.id === product.color)?.hex ?? '#ccc' }"></span>
+                <span v-if="product.colorVariants?.[0]?.color" class="w-3 h-3 rounded-full inline-block border border-border" :style="{ backgroundColor: product.colorVariants[0].color }"></span>
                 <span class="text-[11px] text-gray-400">{{ styles.find(s => s.id === product.styleId)?.name }}</span>
               </div>
             </div>

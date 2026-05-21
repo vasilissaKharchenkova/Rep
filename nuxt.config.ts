@@ -3,6 +3,9 @@ export default defineNuxtConfig({
   compatibilityDate: '2025-07-15',
   devtools: { enabled: false },
   ssr: false,
+  app: {
+    pageTransition: { name: 'page', mode: 'out-in' }
+  },
   vite: {
     server: {
       hmr: false

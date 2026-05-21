@@ -22,7 +22,11 @@ const { updateQuantity, removeItem } = useCart()
           <div class="w-4 h-4 rounded-full border border-gray-200" :class="item.colorClass"></div>
           <span class="font-body text-textMain/60 text-sm">{{ item.colorName }}</span>
         </div>
-        <p class="font-heading text-primary text-lg mt-2">{{ item.price.toLocaleString('ru-RU') }} ₽</p>
+        <p class="font-heading text-primary text-lg mt-2">
+          <span v-if="item.originalPrice && item.originalPrice !== item.price" class="text-textMain/40 line-through text-sm mr-2">{{ item.originalPrice.toLocaleString('ru-RU') }} ₽</span>
+          {{ item.price.toLocaleString('ru-RU') }} ₽
+          <span v-if="item.originalPrice && item.originalPrice !== item.price" class="text-xs text-primary ml-1">−{{ Math.round((1 - item.price / item.originalPrice) * 100) }}%</span>
+        </p>
       </div>
       
       <div class="flex sm:flex-col items-center justify-between sm:items-end gap-4">

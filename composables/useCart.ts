@@ -9,9 +9,25 @@ export interface CartItem {
   image: string
   colorName?: string
   colorClass?: string
+  originalPrice?: number
+  collectionSlug?: string
 }
 
 const cart = ref<CartItem[]>([])
+
+// ─── Notification state ──────────────────────
+const notificationText = ref('')
+const notificationVisible = ref(false)
+let notificationTimer: ReturnType<typeof setTimeout> | null = null
+
+function showAddNotification(name: string) {
+  if (notificationTimer) clearTimeout(notificationTimer)
+  notificationText.value = `«${name}» добавлен в корзину`
+  notificationVisible.value = true
+  notificationTimer = setTimeout(() => {
+    notificationVisible.value = false
+  }, 2500)
+}
 
 export const useCart = () => {
   const loadCart = () => {
@@ -34,7 +50,7 @@ export const useCart = () => {
   }
 
   const addItem = (item: Omit<CartItem, 'quantity'>) => {
-    const existingItem = cart.value.find(i => i.id === item.id && i.colorName === item.colorName)
+    const existingItem = cart.value.find(i => i.id === item.id && i.colorName === item.colorName && i.collectionSlug === item.collectionSlug)
     
     if (existingItem) {
       existingItem.quantity += 1
@@ -43,6 +59,7 @@ export const useCart = () => {
     }
     
     saveCart()
+    showAddNotification(item.name)
   }
 
   const removeItem = (id: number, colorName?: string) => {
@@ -116,6 +133,8 @@ export const useCart = () => {
     clearCart,
     submitOrder,
     totalItems,
-    totalPrice
+    totalPrice,
+    notificationText,
+    notificationVisible
   }
 }

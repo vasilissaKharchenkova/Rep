@@ -1,5 +1,12 @@
 import { ref } from 'vue'
 
+export interface ProductColorVariant {
+  name: string
+  color: string
+  image?: string
+  images?: string[]
+}
+
 export interface Product {
   id: number
   name: string
@@ -13,7 +20,7 @@ export interface Product {
   description?: string
   characteristics?: string
   images?: string[]
-  colors?: { name: string; color: string }[]
+  colorVariants?: ProductColorVariant[]
   rating: number
   reviewsCount: number
 }

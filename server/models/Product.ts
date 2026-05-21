@@ -1,5 +1,12 @@
 import mongoose, { Schema, Document } from 'mongoose'
 
+export interface IProductColorVariant {
+  name: string
+  color: string
+  image?: string
+  images?: string[]
+}
+
 export interface IProduct extends Document {
   id: number
   name: string
@@ -13,7 +20,7 @@ export interface IProduct extends Document {
   description?: string
   characteristics?: string
   images?: string[]
-  colors?: { name: string; color: string }[]
+  colorVariants?: IProductColorVariant[]
   rating: number
   reviewsCount: number
   createdAt: Date
@@ -34,7 +41,7 @@ const ProductSchema = new Schema<IProduct>(
     description: { type: String, default: '' },
     characteristics: { type: String, default: '' },
     images: [{ type: String }],
-    colors: [{ name: String, color: String }],
+    colorVariants: [{ name: String, color: String, image: String, images: [String] }],
     rating: { type: Number, default: 0 },
     reviewsCount: { type: Number, default: 0 }
   },

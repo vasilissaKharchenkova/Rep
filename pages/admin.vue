@@ -455,13 +455,6 @@ const styles = [
   { id: 'artdeco', name: 'Ар деко' }
 ]
 
-const colors = [
-  { id: 'white', name: 'Белый' },
-  { id: 'brown', name: 'Коричневый' },
-  { id: 'gray', name: 'Серый' },
-  { id: 'black', name: 'Чёрный' },
-  { id: 'green', name: 'Зелёный' }
-]
 </script>
 
 <template>
@@ -555,12 +548,6 @@ const colors = [
               </div>
             </div>
             <div class="grid grid-cols-2 gap-5">
-              <div>
-                <label class="text-sm font-body text-gray-400 block mb-1">Цвет</label>
-                <select v-model="productForm.color" class="w-full px-4 py-3 border border-border rounded-xl bg-white">
-                  <option v-for="c in colors" :key="c.id" :value="c.id">{{ c.name }}</option>
-                </select>
-              </div>
               <div>
                 <label class="text-sm font-body text-gray-400 block mb-1">Главное изображение</label>
                 <div v-if="productForm.image" class="mb-2">

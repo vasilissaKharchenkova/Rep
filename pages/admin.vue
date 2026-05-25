@@ -20,11 +20,12 @@ onMounted(async () => {
   await loadProducts()
   await loadOrders()
   await loadReviews()
+  await loadQuestions()
   loading.value = false
 })
 
 // ─── Active tab ──────────────────────────────
-const activeTab = ref<'dashboard' | 'products' | 'orders' | 'reviews' | 'collections' | 'order-detail'>('dashboard')
+const activeTab = ref<'dashboard' | 'products' | 'orders' | 'reviews' | 'questions' | 'collections' | 'order-detail'>('dashboard')
 
 // ═══════════════════════════════════════════════
 //  DASHBOARD TAB
@@ -337,6 +338,55 @@ async function deleteReview(id: string) {
 }
 
 // ═══════════════════════════════════════════════
+//  QUESTIONS TAB
+// ═══════════════════════════════════════════════
+const questions = ref<any[]>([])
+const answeringId = ref<string | null>(null)
+const answerText = ref('')
+const answering = ref(false)
+
+async function loadQuestions() {
+  try {
+    questions.value = await authFetch('/api/questions')
+  } catch {}
+}
+
+function startAnswer(id: string, currentAnswer?: string) {
+  answeringId.value = id
+  answerText.value = currentAnswer || ''
+}
+
+function cancelAnswer() {
+  answeringId.value = null
+  answerText.value = ''
+}
+
+async function submitAnswer(questionId: string) {
+  if (!answerText.value.trim() || answering.value) return
+  answering.value = true
+  try {
+    await authFetch(`/api/questions/${questionId}`, {
+      method: 'PUT',
+      body: { answer: answerText.value.trim() }
+    })
+    cancelAnswer()
+    await loadQuestions()
+  } catch (e: any) {
+    alert(e?.data?.statusMessage || 'Ошибка при ответе')
+  } finally {
+    answering.value = false
+  }
+}
+
+async function deleteQuestion(id: string) {
+  if (!confirm('Удалить вопрос?')) return
+  try {
+    await authFetch(`/api/questions/${id}`, { method: 'DELETE' })
+    questions.value = questions.value.filter(q => q._id !== id)
+  } catch {}
+}
+
+// ═══════════════════════════════════════════════
 //  COLLECTIONS TAB
 // ═══════════════════════════════════════════════
 const { collections, fetchCollections } = useCollections()
@@ -483,6 +533,11 @@ const styles = [
                 class="px-6 py-3 font-body text-sm transition-colors border-b-2 -mb-px cursor-pointer bg-transparent"
                 :class="activeTab === 'reviews' ? 'border-primary text-primary font-medium' : 'border-transparent text-gray-400 hover:text-textMain'">
           ⭐ Отзывы
+        </button>
+        <button @click="activeTab = 'questions'; loadQuestions()" 
+                class="px-6 py-3 font-body text-sm transition-colors border-b-2 -mb-px cursor-pointer bg-transparent"
+                :class="activeTab === 'questions' ? 'border-primary text-primary font-medium' : 'border-transparent text-gray-400 hover:text-textMain'">
+          ❓ Вопросы
         </button>
         <button @click="activeTab = 'collections'; loadCollections()" 
                 class="px-6 py-3 font-body text-sm transition-colors border-b-2 -mb-px cursor-pointer bg-transparent"
@@ -902,6 +957,71 @@ const styles = [
             </div>
           </div>
         </section>
+      </div>
+
+      <!-- ══════════════════════════════════════ -->
+      <!--  QUESTIONS TAB                        -->
+      <!-- ══════════════════════════════════════ -->
+      <div v-if="activeTab === 'questions'">
+        <h2 class="font-heading text-2xl text-textMain mb-6">Управление вопросами</h2>
+
+        <div v-if="questions.length === 0" class="text-center py-20 text-gray-400 bg-white rounded-xl border border-border">
+          Нет вопросов
+        </div>
+
+        <div v-else class="space-y-4">
+          <div v-for="q in questions" :key="q._id" class="bg-white rounded-xl border border-border p-6">
+            <div class="flex items-center justify-between mb-2">
+              <div class="flex items-center gap-3">
+                <span class="font-body font-medium text-textMain">{{ q.userName || 'Аноним' }}</span>
+                <span class="text-xs text-gray-400">Товар #{{ q.productId }}</span>
+              </div>
+              <button @click="deleteQuestion(q._id)" class="text-red-500 hover:underline text-sm border-none bg-transparent cursor-pointer">Удалить</button>
+            </div>
+            <p class="font-body text-textMain mb-4">{{ q.text }}</p>
+
+            <!-- Existing answer -->
+            <div v-if="q.answer && answeringId !== q._id" class="ml-4 pl-4 border-l-2 border-primary bg-primary/5 rounded-r-lg p-4 mb-4">
+              <div class="flex items-center justify-between mb-1">
+                <div class="flex items-center gap-2">
+                  <span class="text-sm font-medium text-primary">Ответ</span>
+                  <span v-if="q.answeredAt" class="text-xs text-gray-400">{{ new Date(q.answeredAt).toLocaleDateString('ru-RU') }}</span>
+                </div>
+                <button @click="startAnswer(q._id, q.answer)" class="text-xs text-primary hover:text-primary/70 transition-colors cursor-pointer border-none bg-transparent">
+                  ✏️ Редактировать
+                </button>
+              </div>
+              <p class="text-textMain/80">{{ q.answer }}</p>
+            </div>
+
+            <!-- Answer form -->
+            <div v-if="answeringId === q._id" class="ml-4 space-y-3">
+              <textarea v-model="answerText"
+                        placeholder="Напишите ответ..."
+                        rows="3"
+                        class="w-full px-4 py-3 border border-border rounded-xl resize-none focus:outline-none focus:border-primary font-body">
+              </textarea>
+              <div class="flex gap-3">
+                <button @click="submitAnswer(q._id)"
+                        :disabled="answering || !answerText.trim()"
+                        class="px-6 py-2 bg-primary text-white rounded-lg hover:bg-primary/90 transition-colors disabled:opacity-50 cursor-pointer border-none text-sm">
+                  {{ answering ? 'Сохранение...' : 'Ответить' }}
+                </button>
+                <button @click="cancelAnswer"
+                        class="px-6 py-2 border border-border rounded-lg hover:bg-gray-50 cursor-pointer bg-white text-sm">
+                  Отмена
+                </button>
+              </div>
+            </div>
+
+            <!-- Answer button -->
+            <button v-if="!q.answer && answeringId !== q._id"
+                    @click="startAnswer(q._id)"
+                    class="text-sm text-primary hover:text-primary/70 transition-colors cursor-pointer border-none bg-transparent">
+              ✏️ Ответить
+            </button>
+          </div>
+        </div>
       </div>
 
       <!-- ══════════════════════════════════════ -->

@@ -23,6 +23,7 @@ export interface IProduct extends Document {
   colorVariants?: IProductColorVariant[]
   rating: number
   reviewsCount: number
+  questionsCount: number
   createdAt: Date
   updatedAt: Date
 }
@@ -43,7 +44,8 @@ const ProductSchema = new Schema<IProduct>(
     images: [{ type: String }],
     colorVariants: [{ name: String, color: String, image: String, images: [String] }],
     rating: { type: Number, default: 0 },
-    reviewsCount: { type: Number, default: 0 }
+    reviewsCount: { type: Number, default: 0 },
+    questionsCount: { type: Number, default: 0 }
   },
   { timestamps: true }
 )

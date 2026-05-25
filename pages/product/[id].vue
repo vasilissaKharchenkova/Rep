@@ -2,6 +2,8 @@
 import { ref, computed, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useCart } from '~/composables/useCart'
+import ProductReviews from '~/components/ProductReviews.vue'
+import ProductQuestions from '~/components/ProductQuestions.vue'
 import { useProducts } from '~/composables/useProducts'
 import type { Product } from '~/composables/useProducts'
 
@@ -247,7 +249,7 @@ const onTouchEnd = (e: TouchEvent) => {
             <button @click="selectTab('questions')" 
                     class="pb-4 font-body text-lg"
                     :class="{ 'border-b-2 border-primary text-primary': activeTab === 'questions', 'text-gray-500': activeTab !== 'questions' }">
-              Вопросы о товаре (0)
+              Вопросы о товаре ({{ product?.questionsCount || 0 }})
             </button>
           </div>
 
@@ -258,11 +260,11 @@ const onTouchEnd = (e: TouchEvent) => {
             <div v-if="activeTab === 'characteristics'" class="font-body text-lg leading-relaxed whitespace-pre-line">
               {{ product.characteristics || 'Характеристики отсутствуют' }}
             </div>
-            <div v-if="activeTab === 'reviews'" class="text-gray-500">
-              Отзывы будут загружены позже
+            <div v-if="activeTab === 'reviews'">
+              <ProductReviews :productId="productId" />
             </div>
-            <div v-if="activeTab === 'questions'" class="text-gray-500">
-              Вопросы будут загружены позже
+            <div v-if="activeTab === 'questions'">
+              <ProductQuestions :productId="productId" />
             </div>
           </div>
         </div>

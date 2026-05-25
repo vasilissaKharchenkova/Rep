@@ -3,6 +3,7 @@ import { connectDB } from '../utils/mongoose'
 import { Review } from '../models/Review'
 import { Product } from '../models/Product'
 import { User } from '../models/User'
+import { Order } from '../models/Order'
 import { authGuard } from '../utils/auth'
 
 export default defineEventHandler(async (event) => {
@@ -22,6 +23,15 @@ export default defineEventHandler(async (event) => {
     throw createError({ statusCode: 404, statusMessage: 'Product not found' })
   }
 
+  // Purchase guard: only customers who bought this product can review it
+  const order = await Order.findOne({
+    userId: auth.userId,
+    'items.productId': body.productId
+  })
+  if (!order) {
+    throw createError({ statusCode: 403, statusMessage: 'Вы можете оставить отзыв только на купленный товар' })
+  }
+
   const user = await User.findById(auth.userId)
   if (!user) {
     throw createError({ statusCode: 404, statusMessage: 'User not found' })
@@ -37,7 +47,7 @@ export default defineEventHandler(async (event) => {
       rating: body.rating,
       text: body.text || ''
     },
-    { upsert: true, new: true }
+    { upsert: true, returnDocument: 'after' }
   )
 
   // Recalculate product rating

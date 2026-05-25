@@ -58,7 +58,7 @@
             <li><NuxtLink to="/collections" class="hover:text-white transition-colors">Коллекции</NuxtLink></li>
             <li><NuxtLink to="/about" class="hover:text-white transition-colors">О нас</NuxtLink></li>
             <li><NuxtLink to="/delivery" class="hover:text-white transition-colors">Доставка</NuxtLink></li>
-            <li><a href="#contact" class="hover:text-white transition-colors">Контакты</a></li>
+            <li><a href="/#contact" class="hover:text-white transition-colors">Контакты</a></li>
           </ul>
         </div>
 
@@ -66,11 +66,11 @@
         <div>
           <h4 class="text-white uppercase tracking-widest text-xs font-body mb-6">Покупателям</h4>
           <ul class="space-y-3 font-body text-sm">
-            <li><a href="#" class="hover:text-white transition-colors">Оплата</a></li>
-            <li><a href="#" class="hover:text-white transition-colors">Возврат</a></li>
-            <li><a href="#" class="hover:text-white transition-colors">Гарантия</a></li>
-            <li><a href="#" class="hover:text-white transition-colors">Вопросы и ответы</a></li>
-            <li><a href="#" class="hover:text-white transition-colors">Сертификаты</a></li>
+            <li><a href="/payment" class="hover:text-white transition-colors">Оплата</a></li>
+            <li><a href="/delivery" class="hover:text-white transition-colors">Возврат</a></li>
+            <li><a href="/warranty" class="hover:text-white transition-colors">Гарантия</a></li>
+            <li><a href="/faq" class="hover:text-white transition-colors">Вопросы и ответы</a></li>
+            <li><a href="/certificates" class="hover:text-white transition-colors">Сертификаты</a></li>
           </ul>
         </div>
       </div>
@@ -83,8 +83,8 @@
           © {{ new Date().getFullYear() }} CLICKWOOD. Все права защищены.
         </p>
         <div class="flex items-center gap-6">
-          <a href="#" class="font-body text-xs text-brown hover:text-white transition-colors">Политика конфиденциальности</a>
-          <a href="#" class="font-body text-xs text-brown hover:text-white transition-colors">Пользовательское соглашение</a>
+          <a href="/privacy" class="font-body text-xs text-brown hover:text-white transition-colors">Политика конфиденциальности</a>
+          <a href="/terms" class="font-body text-xs text-brown hover:text-white transition-colors">Пользовательское соглашение</a>
         </div>
       </div>
     </div>

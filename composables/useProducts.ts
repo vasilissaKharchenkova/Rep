@@ -23,6 +23,7 @@ export interface Product {
   colorVariants?: ProductColorVariant[]
   rating: number
   reviewsCount: number
+  questionsCount: number
 }
 
 const products = ref<Product[]>([])

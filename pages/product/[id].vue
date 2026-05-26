@@ -34,19 +34,22 @@ onMounted(async () => {
 })
 const activeTab = ref('description')
 const activeImage = ref(0)
-const selectedColor = ref(0)
+const selectedColor = ref<number | null>(null)
 
 const productColors = computed(() => product.value?.colorVariants || [])
 
 const currentVariantImages = computed(() => {
+  const base = product.value?.images || [product.value?.image].filter(Boolean) as string[]
+  if (selectedColor.value === null) return base
   const variant = productColors.value[selectedColor.value]
   if (variant?.images?.length) {
-    return variant.images
+    return [...variant.images, ...base]
   }
-  return product.value?.images || [product.value?.image].filter(Boolean) as string[]
+  return base
 })
 
 const currentVariantMainImage = computed(() => {
+  if (selectedColor.value === null) return product.value?.images?.[0] || product.value?.image || ''
   const variant = productColors.value[selectedColor.value]
   return variant?.image || product.value?.images?.[0] || product.value?.image || ''
 })
@@ -60,13 +63,22 @@ const selectTab = (tab: string) => {
 }
 
 const selectColor = (index: number) => {
-  selectedColor.value = index
+  if (selectedColor.value === index) {
+    selectedColor.value = null
+  } else {
+    selectedColor.value = index
+  }
   activeImage.value = 0
 }
 
-const buyNow = () => {
+const addToCart = () => {
   if (!product.value) return
-  const variant = productColors.value[selectedColor.value]
+  if (productColors.value.length && selectedColor.value === null) {
+    alert('Пожалуйста, выберите цвет')
+    return
+  }
+  const idx = selectedColor.value !== null ? selectedColor.value : 0
+  const variant = productColors.value[idx]
   addItem({
     id: product.value.id,
     name: product.value.name,
@@ -76,6 +88,11 @@ const buyNow = () => {
     colorName: variant?.name,
     colorClass: variant?.color
   })
+}
+
+const buyNow = () => {
+  addToCart()
+  if (productColors.value.length && selectedColor.value === null) return
   router.push('/checkout')
 }
 
@@ -143,8 +160,8 @@ const onTouchEnd = (e: TouchEvent) => {
           <!-- Images Column -->
           <div class="flex gap-4">
             <!-- Thumbnails -->
-            <div class="flex flex-col gap-3">
-              <div v-for="(image, index) in product.images" :key="index" 
+            <div class="flex flex-col gap-3 max-h-[516px] overflow-y-auto [&::-webkit-scrollbar]:hidden">
+              <div v-for="(image, index) in currentVariantImages" :key="index" 
                    @click="selectImage(index)"
                    class="w-[120px] h-[120px] border-2 cursor-pointer transition-all"
                    :class="{ 'border-primary': activeImage === index, 'border-transparent': activeImage !== index }">
@@ -197,7 +214,7 @@ const onTouchEnd = (e: TouchEvent) => {
                      :style="{ backgroundColor: color.color }"
                      :title="color.name">
                 </div>
-                <span class="text-sm text-textMain/70">{{ productColors[selectedColor]?.name }}</span>
+                <span v-if="selectedColor !== null" class="text-sm text-textMain/70">{{ productColors[selectedColor]?.name }}</span>
               </div>
             </div>
 
@@ -206,9 +223,9 @@ const onTouchEnd = (e: TouchEvent) => {
 
              <!-- Buttons -->
              <div class="flex flex-col gap-3 mb-8">
-               <button @click="addItem({ id: product.id, name: product.name, price: product.price, image: product.images?.[0] || product.image, article: product.article, colorName: productColors[selectedColor]?.name, colorClass: productColors[selectedColor]?.color })" class="w-full py-3 bg-primary text-white rounded-full hover:bg-primary/90 transition-colors">
-                 В корзину
-               </button>
+              <button @click="addToCart" class="w-full py-3 bg-primary text-white rounded-full hover:bg-primary/90 transition-colors">
+                В корзину
+              </button>
               <button @click="buyNow" class="w-full py-3 border border-primary text-primary rounded-full hover:bg-primary/5 transition-colors cursor-pointer">
                 Купить в 1 клик
               </button>

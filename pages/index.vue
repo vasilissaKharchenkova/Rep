@@ -136,17 +136,17 @@ const nextWorks = () => worksSwiper.value?.slideNext()
             </div>
             <div class="swiper-slide">
               <div class="border border-border p-0">
-                <img src="https://images.unsplash.com/photo-1555041469-a586c61ea9bc?q=80" alt="Обеденный стол" class="w-full h-[540px] object-cover">
+                <img src="../public/images/glas.png" alt="Обеденный стол" class="w-full h-[540px] object-cover">
               </div>
             </div>
             <div class="swiper-slide">
               <div class="border border-border p-0">
-                <img src="https://images.unsplash.com/photo-1550581190-9c1c48d21d66?q=80" alt="Современное кресло" class="w-full h-[540px] object-cover">
+                <img src="../public/images/bestsellers2.png" alt="Современное кресло" class="w-full h-[540px] object-cover">
               </div>
             </div>
             <div class="swiper-slide">
               <div class="border border-border p-0">
-                <img src="https://images.unsplash.com/photo-1505693416388-ac5ce068fe85?q=80" alt="Мягкий диван" class="w-full h-[540px] object-cover">
+                <img src="../public/images/052e466d89d06be4a45dc92e7adf52a8.jpg" alt="Мягкий диван" class="w-full h-[540px] object-cover">
               </div>
             </div>
           </div>

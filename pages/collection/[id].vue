@@ -72,6 +72,7 @@ const addAllToCart = () => {
 </script>
 
 <template>
+<div>
   <!-- Loading -->
   <main v-if="loading" class="min-h-[60vh] flex items-center justify-center">
     <div class="text-center py-20 text-gray-400">Загрузка...</div>
@@ -253,6 +254,7 @@ const addAllToCart = () => {
       </div>
     </section>
   </main>
+</div>
 </template>
 
 <style scoped>

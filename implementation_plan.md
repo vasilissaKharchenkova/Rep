@@ -1,81 +1,53 @@
 # Implementation Plan
 
-Добавление динамического счётчика вопросов о товаре (`questionsCount`) в карточку товара и исправление битой сборки API.
+Fix blank page on `/collection/:slug` caused by missing single root element in Vue template, which conflicts with Nuxt page transitions.
 
-Текущая функциональность вопросов полностью работает: пользователи могут задавать вопросы, админ может отвечать на них через админ-панель, ответы отображаются под вопросом. Однако в карточке товара на табе "Вопросы о товаре" счётчик жёстко зашит как `(0)` — его нужно сделать динамическим, как это сделано для отзывов (`reviewsCount`). Также обнаружена критическая проблема: файл `server/api/questions.post.ts` повреждён — в конце содержит остаток XML-тега `</write_to_file>`, что вызывает ошибку сборки Nitro ("Unterminated regular expression").
+The page `pages/collection/[id].vue` renders completely empty because three sibling `<main>` elements (loading, error, and detail states) violate Nuxt's requirement for a single root node when page transitions are enabled. Nuxt's `<NuxtPage>` with `pageTransition` wraps the component in a `<Transition>` component, which in Vue 3 requires a single root element for the transition to work correctly. Without it, Vue fails to mount the component's DOM properly. The fix requires wrapping all conditional branches in a single parent `<div>`.
 
 [Types]
-Добавление одного поля в существующие интерфейсы.
+No type changes needed.
 
-- `IProduct.questionsCount: number` — количество вопросов для товара (аналогично `reviewsCount`), добавляется в Mongoose-схему и интерфейс
-- `Product.questionsCount: number` — добавляется в интерфейс на фронте (composable `useProducts.ts`)
-- `QuestionData` — без изменений
+No interfaces, enums, or data structures are being introduced or modified; the change is purely structural in the template.
 
 [Files]
-Изменение 5 существующих файлов, создание 1 нового seed-скрипта.
+Only one file will be modified.
 
-### Изменяемые файлы:
-
-1. **`server/models/Product.ts`** (существующий)
-   - Добавить поле `questionsCount: { type: Number, default: 0 }` в схему и интерфейс `IProduct`
-
-2. **`server/api/questions.post.ts`** (существующий) 
-   - **Исправить битый файл**: удалить мусор `</write_to_file>` в конце
-   - После создания вопроса добавить `await Product.findOneAndUpdate({ id: body.productId }, { $inc: { questionsCount: 1 } })`
-
-3. **`server/api/questions/[id].delete.ts`** (существующий)
-   - После удаления вопроса добавить `await Product.findOneAndUpdate({ id: question.productId }, { $inc: { questionsCount: -1 } })`
-
-4. **`server/api/questions/[id].put.ts`** (существующий)
-   - Без изменений (ответ админа не меняет количество вопросов)
-
-5. **`composables/useProducts.ts`** (существующий)
-   - Добавить поле `questionsCount: number` в тип `Product`
-
-6. **`pages/product/[id].vue`** (существующий)
-   - Строка 252: заменить `Вопросы о товаре (0)` на динамическое значение:
-     `Вопросы о товаре ({{ product?.questionsCount || 0 }})`
-
-### Новый файл:
-
-7. **`server/scripts/seed-questions-count.ts`** (новый, опциональный seed-скрипт)
-   - Для продакшена: подсчитать актуальное количество вопросов для каждого товара и обновить поле `questionsCount` в Product
+- `pages/collection/[id].vue`:
+  - Current: Three sibling `<main>` elements at root level:
+    ```html
+    <main v-if="loading">...Загрузка...</main>
+    <main v-else-if="error || !collection">...Ошибка...</main>
+    <main v-else>...Детальная информация...</main>
+    ```
+  - Fix: Wrap all three in a single root `<div>`:
+    ```html
+    <div class="page-wrapper">
+      <main v-if="loading">...Загрузка...</main>
+      <main v-else-if="error || !collection">...Ошибка...</main>
+      <main v-else>...Детальная информация...</main>
+    </div>
+    ```
+  - No other files are affected.
 
 [Functions]
-Модификация 3 существующих serverless-функций, без новых и удалённых.
+No function modifications needed.
 
-### Модифицируемые:
-
-1. **`server/api/questions.post.ts` — default export handler**
-   - Текущая сигнатура: `defineEventHandler(async (event) => {...})`
-   - Изменение: после `Question.create()` добавить `$inc: { questionsCount: 1 }` для соответствующего Product
-   - Дополнительно: исправить битый синтаксис (удалить `</write_to_file>` из конца файла)
-
-2. **`server/api/questions/[id].delete.ts` — default export handler**
-   - Текущая сигнатура: `defineEventHandler(async (event) => {...})`
-   - Изменение: перед удалением вопроса получить его `productId`, затем удалить, затем сделать `$inc: { questionsCount: -1 }`
+No functions are being created, modified, or removed. The `addItemToCart`, `addAllToCart`, and lifecycle hooks remain unchanged.
 
 [Classes]
-Без изменений классов.
+No class modifications needed.
+
+No classes are being created, modified, or removed.
 
 [Dependencies]
-Без изменений зависимостей.
+No dependency modifications needed.
+
+No packages, version changes, or integrations are required.
 
 [Testing]
-Ручное тестирование.
-
-- Перезапустить dev-сервер, убедиться, что ошибка сборки "Unterminated regular expression" исчезла
-- Открыть карточку товара, переключиться на таб "Вопросы о товаре", проверить что вместо `(0)` отображается реальное количество вопросов
-- Создать новый вопрос как пользователь — счётчик должен увеличиться
-- Удалить вопрос (как админ или автор) — счётчик должен уменьшиться
-- Проверить что ответ админа не влияет на счётчик
+Open the browser to `/collection/:slug` and verify the page renders with content (not blank). Also verify that navigation from `/collections` to `/collection/:slug` and back works correctly with page transitions.
 
 [Implementation Order]
-Все изменения могут быть выполнены последовательно, каждая операция атомарна и не конфликтует с другими.
+Single-step change — wrap root elements in a shared parent `<div>` in one file.
 
-1. Исправить битый файл `server/api/questions.post.ts` — удалить мусор `</write_to_file>` и сразу добавить инкремент `questionsCount`
-2. Обновить `server/models/Product.ts` — добавить поле `questionsCount` в схему и интерфейс
-3. Обновить `server/api/questions/[id].delete.ts` — добавить декремент `questionsCount`
-4. Обновить `composables/useProducts.ts` — добавить `questionsCount` в тип `Product`
-5. Обновить `pages/product/[id].vue` — заменить хардкод `(0)` на динамическое значение
-6. Перезапустить dev-сервер и проверить сборку
+1. Edit `pages/collection/[id].vue`: wrap all three `<main>` elements in a single `<div>` root element.

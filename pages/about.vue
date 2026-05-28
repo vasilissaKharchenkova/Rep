@@ -68,32 +68,29 @@ const team = [
   {
     name: 'Александр Петров',
     position: 'Основатель и генеральный директор',
-    image: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=400&h=500&fit=crop'
+    image: '/images/man.jpg'
   },
   {
     name: 'Мария Иванова',
     position: 'Главный дизайнер',
-    image: 'https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?w=400&h=500&fit=crop'
+    image: '/images/woman.jpg'
   },
   {
     name: 'Дмитрий Смирнов',
     position: 'Руководитель производства',
-    image: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=400&h=500&fit=crop'
+    image: '/images/man.jpg'
   },
   {
     name: 'Елена Козлова',
     position: 'Руководитель отдела продаж',
-    image: 'https://images.unsplash.com/photo-1580489944761-15a19d654956?w=400&h=500&fit=crop'
+    image: '/images/woman.jpg'
   }
 ]
 
 const galleryImages = [
-  'https://images.unsplash.com/photo-1555041469-a586c61ea9bc?w=800&h=600&fit=crop',
-  'https://images.unsplash.com/photo-1556909114-f6e7ad7d3136?w=800&h=600&fit=crop',
-  'https://images.unsplash.com/photo-1586023492125-27b2c045efd7?w=800&h=600&fit=crop',
-  'https://images.unsplash.com/photo-1616486338812-3dadae4b4ace?w=800&h=600&fit=crop',
-  'https://images.unsplash.com/photo-1618221195710-dd6b41faaea6?w=800&h=600&fit=crop',
-  'https://images.unsplash.com/photo-1600585154340-be6161a56a0c?w=800&h=600&fit=crop'
+  '/images/factory1.jpg',
+  '/images/factory2.jpg',
+  '/images/factory3.jpg',
 ]
 </script>
 
@@ -102,7 +99,7 @@ const galleryImages = [
     <!-- Hero Section -->
     <section class="h-[500px] md:h-[600px] flex flex-col items-center justify-center relative overflow-hidden">
       <div class="absolute inset-0 bg-black/30 z-10"></div>
-      <div class="absolute inset-0 bg-[url('https://images.unsplash.com/photo-1555041469-a586c61ea9bc?w=1920&h=1080&fit=crop')] bg-cover bg-center"></div>
+      <div class="absolute inset-0 bg-[url('/images/001.jpg')] bg-cover bg-center"></div>
       
       <div class="container mx-auto px-4 text-center relative z-20">
         <h1 class="font-heading text-white text-5xl md:text-7xl leading-tight tracking-wider">

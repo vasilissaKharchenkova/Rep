@@ -42,7 +42,7 @@ const benefits = [
     <!-- Hero Section -->
     <section class="h-[400px] md:h-[500px] flex flex-col items-center justify-center relative overflow-hidden">
       <div class="absolute inset-0 bg-black/30 z-10"></div>
-      <div class="absolute inset-0 bg-[url('https://images.unsplash.com/photo-1616486338812-3dadae4b4ace?w=1920&h=1080&fit=crop')] bg-cover bg-center"></div>
+      <div class="absolute inset-0 bg-[url('/images/002.jpg')] bg-cover bg-center"></div>
       
       <div class="container mx-auto px-4 text-center relative z-20">
         <h1 class="font-heading text-white text-4xl md:text-6xl leading-tight tracking-wider">

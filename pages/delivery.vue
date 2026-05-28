@@ -107,12 +107,13 @@ const toggleFaq = (index) => {
 <template>
   <main>
     <!-- Hero Section -->
-    <section class="h-[400px] md:h-[450px] flex flex-col items-center justify-center relative overflow-hidden bg-primary/10">
+    <section class="h-[400px] md:h-[500px] flex flex-col items-center justify-center relative overflow-hidden bg-[url('/images/delivery.jpg')] bg-cover bg-center">
+      <div class="absolute inset-0 bg-black/30 z-10"></div>
       <div class="container mx-auto px-4 text-center relative z-20">
-        <h1 class="font-heading text-textMain text-5xl md:text-7xl leading-tight tracking-wider">
+        <h1 class="font-heading text-white text-4xl md:text-6xl leading-tight tracking-wider">
           Доставка и оплата
         </h1>
-        <p class="font-body text-textMain/70 text-xl mt-6 max-w-2xl mx-auto">
+        <p class="font-body text-white/90 text-xl mt-6 max-w-2xl mx-auto">
           Быстрая и надёжная доставка по всей России. Удобные способы оплаты для каждого клиента
         </p>
       </div>

@@ -8,29 +8,39 @@ export default defineEventHandler(async (event) => {
 
   const collections = await Collection.find().sort({ id: 1 }).lean()
 
-  // For each collection, load the referenced products and compute prices
-  const enriched = await Promise.all(
-    collections.map(async (col) => {
-      const productIds = col.items.map((i: { productId: number }) => i.productId)
-      const products = await Product.find({ id: { $in: productIds } }).lean()
+  if (collections.length === 0) return []
 
-      let totalPrice = 0
-      for (const item of col.items) {
-        const product = products.find((p: any) => p.id === item.productId)
-        if (product) {
-          totalPrice += product.price * item.quantity
-        }
-      }
-      const setPrice = Math.round(totalPrice * (1 - col.discount / 100))
+  // Collect all product IDs from all collections
+  const allProductIds = [...new Set(
+    collections.flatMap(col => col.items.map((i: { productId: number }) => i.productId))
+  )]
 
-      return {
-        ...col,
-        products,
-        totalPrice,
-        setPrice
+  // Single query for all products
+  const products = await Product.find({ id: { $in: allProductIds } }).lean()
+  const productsMap = new Map(products.map((p: any) => [p.id, p]))
+
+  // Enrich each collection using the map
+  const enriched = collections.map((col) => {
+    let totalPrice = 0
+    for (const item of col.items) {
+      const product = productsMap.get(item.productId)
+      if (product) {
+        totalPrice += product.price * item.quantity
       }
-    })
-  )
+    }
+    const setPrice = Math.round(totalPrice * (1 - col.discount / 100))
+
+    const colProducts = col.items
+      .map((item: { productId: number }) => productsMap.get(item.productId))
+      .filter(Boolean)
+
+    return {
+      ...col,
+      products: colProducts,
+      totalPrice,
+      setPrice
+    }
+  })
 
   return enriched
 })

@@ -36,7 +36,7 @@ function saveCity(city: City): void {
 
 async function fetchCityByIP(): Promise<string | null> {
   try {
-    const res = await fetch('http://ip-api.com/json')
+    const res = await fetch('https://ip-api.com/json')
     if (!res.ok) return null
     const data = await res.json()
     return data.city ?? null

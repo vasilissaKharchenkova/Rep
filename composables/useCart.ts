@@ -62,17 +62,19 @@ export const useCart = () => {
     showAddNotification(item.name)
   }
 
-  const removeItem = (id: number, colorName?: string) => {
-    cart.value = cart.value.filter(item => item.id !== id || (colorName && item.colorName !== colorName))
+  const removeItem = (id: number, colorName?: string, collectionSlug?: string) => {
+    cart.value = cart.value.filter(item => 
+      !(item.id === id && item.colorName === colorName && item.collectionSlug === collectionSlug)
+    )
     saveCart()
   }
 
-  const updateQuantity = (id: number, quantity: number, colorName?: string) => {
-    const item = cart.value.find(i => i.id === id && i.colorName === colorName)
+  const updateQuantity = (id: number, quantity: number, colorName?: string, collectionSlug?: string) => {
+    const item = cart.value.find(i => i.id === id && i.colorName === colorName && i.collectionSlug === collectionSlug)
     
     if (item) {
       if (quantity < 1) {
-        removeItem(id, colorName)
+        removeItem(id, colorName, collectionSlug)
       } else {
         item.quantity = quantity
         saveCart()

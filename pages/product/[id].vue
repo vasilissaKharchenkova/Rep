@@ -32,6 +32,15 @@ onMounted(async () => {
     loading.value = false
   }
 })
+
+// ─── SEO ────────────────────────────────────
+useHead({
+  title: computed(() => product.value ? `${product.value.name} — CLICKWOOD` : 'CLICKWOOD'),
+  meta: [
+    { name: 'description', content: computed(() => product.value?.description?.slice(0, 160) || 'CLICKWOOD — стильная и надёжная мебель') }
+  ]
+})
+
 const activeTab = ref('description')
 const activeImage = ref(0)
 const selectedColor = ref<number | null>(null)

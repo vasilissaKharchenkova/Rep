@@ -31,6 +31,14 @@ onMounted(async () => {
   loading.value = false
 })
 
+// ─── SEO ────────────────────────────────────
+useHead({
+  title: computed(() => collection.value ? `${collection.value.name} — CLICKWOOD` : 'CLICKWOOD'),
+  meta: [
+    { name: 'description', content: computed(() => collection.value?.description?.slice(0, 160) || 'Готовые интерьерные решения') }
+  ]
+})
+
 const addItemToCart = (item: { id: number; name: string; price: number; image: string; article: string }) => {
   const discount = collection.value?.discount || 0
   const discountedPrice = discount > 0 ? Math.round(item.price * (1 - discount / 100)) : item.price

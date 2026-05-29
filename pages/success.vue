@@ -28,7 +28,16 @@ const createdAt = computed(() => {
 const secondsLeft = ref(60)
 let timer: ReturnType<typeof setInterval> | null = null
 
+// ─── Animation state ───────────────────────
+const pageVisible = ref(false)
+
 onMounted(() => {
+  // Trigger fade-in after mount
+  requestAnimationFrame(() => {
+    pageVisible.value = true
+  })
+
+  // Auto-redirect timer (60 seconds)
   timer = setInterval(() => {
     secondsLeft.value--
     if (secondsLeft.value <= 0) {
@@ -40,16 +49,6 @@ onMounted(() => {
 
 onUnmounted(() => {
   if (timer) clearInterval(timer)
-})
-
-// ─── Animation state ───────────────────────
-const pageVisible = ref(false)
-
-onMounted(() => {
-  // Trigger fade-in after mount
-  requestAnimationFrame(() => {
-    pageVisible.value = true
-  })
 })
 </script>
 

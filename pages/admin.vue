@@ -195,7 +195,7 @@ function removeColorVariant(index: number) {
 }
 
 const uploadingVariantImage = ref<number | null>(null)
-const newVariantImageUrl = ref('')
+const newVariantImageUrls = ref<Record<number, string>>({})
 
 async function uploadVariantMainImage(index: number, files: FileList | null) {
   if (!files || files.length === 0) return
@@ -238,10 +238,10 @@ function removeVariantImage(variantIndex: number, imageIndex: number) {
 }
 
 function addVariantImageUrl(variantIndex: number) {
-  const url = newVariantImageUrl.value.trim()
+  const url = (newVariantImageUrls.value[variantIndex] || '').trim()
   if (!url) return
   productForm.value.colorVariants[variantIndex].images.push(url)
-  newVariantImageUrl.value = ''
+  newVariantImageUrls.value[variantIndex] = ''
 }
 
 async function saveProduct() {
@@ -695,7 +695,7 @@ const styles = [
                   </div>
                   <div class="flex gap-2">
                     <input type="file" multiple accept="image/*" @change="uploadVariantImages(vIndex, ($event.target as HTMLInputElement).files)" class="flex-1 px-3 py-2 border border-border rounded-lg text-sm file:mr-3 file:py-1 file:px-3 file:rounded-lg file:border-0 file:bg-primary file:text-white file:cursor-pointer file:text-xs" />
-                    <input v-model="newVariantImageUrl" placeholder="или URL" class="flex-1 px-3 py-2 border border-border rounded-lg text-sm" @keyup.enter="addVariantImageUrl(vIndex)" />
+                    <input v-model="newVariantImageUrls[vIndex]" placeholder="или URL" class="flex-1 px-3 py-2 border border-border rounded-lg text-sm" @keyup.enter="addVariantImageUrl(vIndex)" />
                     <button type="button" @click="addVariantImageUrl(vIndex)" class="px-3 py-2 bg-primary text-white rounded-lg text-xs hover:bg-primary/90 cursor-pointer border-none">+</button>
                   </div>
                 </div>

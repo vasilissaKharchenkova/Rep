@@ -28,15 +28,25 @@ export interface Product {
 
 const products = ref<Product[]>([])
 
-let productsCache: Product[] = []
+// ─── Cache with TTL ──────────────────────────
+interface CacheEntry<T> {
+  data: T
+  timestamp: number
+}
 
-async function loadCache() {
-  if (productsCache.length === 0) {
-    try {
-      productsCache = await $fetch<Product[]>('/api/products')
-    } catch {}
+const productsCache: CacheEntry<Product[]> = { data: [], timestamp: 0 }
+const CACHE_TTL = 60000 // 1 minute
+
+async function loadCache(): Promise<Product[]> {
+  const now = Date.now()
+  if (productsCache.data.length > 0 && now - productsCache.timestamp < CACHE_TTL) {
+    return productsCache.data
   }
-  return productsCache
+  try {
+    productsCache.data = await $fetch<Product[]>('/api/products')
+    productsCache.timestamp = now
+  } catch {}
+  return productsCache.data
 }
 
 // Standalone export for Header.vue compatibility
@@ -73,11 +83,10 @@ export const useProducts = () => {
     }
   }
 
-  const searchProducts = async (query: string): Promise<Product[]> => {
+  const searchLocalProducts = async (query: string): Promise<Product[]> => {
     const q = query.toLowerCase().trim()
     if (!q) return []
-    // Load all products and search locally for quick response
-    const all = products.value.length ? products.value : await fetchProducts()
+    const all = products.value.length ? products.value : await loadCache()
     return all.filter(
       p => p.name.toLowerCase().includes(q) || p.article.toLowerCase().includes(q)
     ).slice(0, 5)
@@ -87,6 +96,6 @@ export const useProducts = () => {
     products,
     fetchProducts,
     fetchProduct,
-    searchProducts
+    searchProducts: searchLocalProducts
   }
 }

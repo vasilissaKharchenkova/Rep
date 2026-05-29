@@ -1,16 +1,17 @@
 <script setup>
 import { ref, onMounted } from 'vue'
-import Swiper from 'swiper'
-import { Navigation, Mousewheel, Keyboard } from 'swiper/modules'
-import 'swiper/css'
-import 'swiper/css/navigation'
 
 let collectionSwiper = ref(null)
 let worksSwiper = ref(null)
 
 onMounted(() => {
-  // Исправление для Nuxt 4 + Swiper 12: инициализация после полной отрисовки DOM
-  setTimeout(() => {
+  // Динамический импорт Swiper и инициализация после рендеринга DOM
+  const initSwipers = async () => {
+    const Swiper = (await import('swiper')).default
+    const { Navigation, Mousewheel, Keyboard } = await import('swiper/modules')
+    await import('swiper/css')
+    await import('swiper/css/navigation')
+
     // Слайдер для Новая коллекция
     collectionSwiper.value = new Swiper('.collection-slider', {
       modules: [Navigation, Mousewheel, Keyboard],
@@ -29,6 +30,7 @@ onMounted(() => {
       }
     })
 
+    // Слайдер для Наши работы
     worksSwiper.value = new Swiper('.works-slider', {
       modules: [Navigation, Mousewheel, Keyboard],
       slidesPerView: 1,
@@ -45,7 +47,10 @@ onMounted(() => {
         }
       }
     })
-  }, 120)
+  }
+
+  // Небольшая задержка для гарантии полного рендеринга DOM
+  setTimeout(initSwipers, 120)
 })
 
 const prevCollection = () => collectionSwiper.value?.slidePrev()
@@ -121,32 +126,32 @@ const nextWorks = () => worksSwiper.value?.slideNext()
           <div class="swiper-wrapper">
             <div class="swiper-slide">
               <div class="border border-border p-0">
-                <img src="../public/images/collect_stul.png" alt="Кресло" class="w-full h-[540px] object-cover">
+                <img src="../public/images/collect_stul.png" alt="Кресло" class="w-full h-[540px] object-cover" loading="lazy">
               </div>
             </div>
             <div class="swiper-slide">
               <div class="border border-border p-0">
-                <img src="../public/images/collect_stol.png" alt="Тумба" class="w-full h-[540px] object-cover">
+                <img src="../public/images/collect_stol.png" alt="Тумба" class="w-full h-[540px] object-cover" loading="lazy">
               </div>
             </div>
             <div class="swiper-slide">
               <div class="border border-border p-0">
-                <img src="../public/images/collect_tumb.png" alt="Диванчик" class="w-full h-[540px] object-cover">
+                <img src="../public/images/collect_tumb.png" alt="Диванчик" class="w-full h-[540px] object-cover" loading="lazy">
               </div>
             </div>
             <div class="swiper-slide">
               <div class="border border-border p-0">
-                <img src="../public/images/glas.png" alt="Обеденный стол" class="w-full h-[540px] object-cover">
+                <img src="../public/images/glas.png" alt="Обеденный стол" class="w-full h-[540px] object-cover" loading="lazy">
               </div>
             </div>
             <div class="swiper-slide">
               <div class="border border-border p-0">
-                <img src="../public/images/bestsellers2.png" alt="Современное кресло" class="w-full h-[540px] object-cover">
+                <img src="../public/images/bestsellers2.png" alt="Современное кресло" class="w-full h-[540px] object-cover" loading="lazy">
               </div>
             </div>
             <div class="swiper-slide">
               <div class="border border-border p-0">
-                <img src="../public/images/052e466d89d06be4a45dc92e7adf52a8.jpg" alt="Мягкий диван" class="w-full h-[540px] object-cover">
+                <img src="../public/images/052e466d89d06be4a45dc92e7adf52a8.jpg" alt="Мягкий диван" class="w-full h-[540px] object-cover" loading="lazy">
               </div>
             </div>
           </div>

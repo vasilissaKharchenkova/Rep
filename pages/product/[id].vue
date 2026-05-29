@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useCart } from '~/composables/useCart'
 import ProductReviews from '~/components/ProductReviews.vue'
@@ -14,30 +14,19 @@ const route = useRoute()
 const router = useRouter()
 const productId = parseInt(route.params.id)
 
-const product = ref<Product | null>(null)
-const loading = ref(true)
-const error = ref('')
-
-onMounted(async () => {
-  try {
-    const data = await fetchProduct(productId)
-    if (data) {
-      product.value = data
-    } else {
-      error.value = 'Товар не найден'
-    }
-  } catch {
-    error.value = 'Ошибка загрузки товара'
-  } finally {
-    loading.value = false
-  }
-})
+const { data: product, pending: loading, error } = await useAsyncData<Product | null>(
+  `product-${productId}`,
+  () => fetchProduct(productId)
+)
 
 // ─── SEO ────────────────────────────────────
+const productTitle = computed(() => product.value ? `${product.value.name} — CLICKWOOD` : 'CLICKWOOD')
+const productDescription = computed(() => product.value?.description?.slice(0, 160) || 'CLICKWOOD — стильная и надёжная мебель')
+
 useHead({
-  title: computed(() => product.value ? `${product.value.name} — CLICKWOOD` : 'CLICKWOOD'),
+  title: productTitle,
   meta: [
-    { name: 'description', content: computed(() => product.value?.description?.slice(0, 160) || 'CLICKWOOD — стильная и надёжная мебель') }
+    { name: 'description', content: productDescription }
   ]
 })
 
@@ -228,7 +217,16 @@ const onTouchEnd = (e: TouchEvent) => {
             </div>
 
             <!-- Price -->
-            <div class="font-body text-4xl text-textMain mb-6">{{ product.price.toLocaleString('ru-RU') }} ₽</div>
+            <div class="font-body text-4xl text-textMain mb-6">
+              <template v-if="product.discount > 0">
+                <span class="text-gray-400 line-through text-2xl mr-3">{{ product.price.toLocaleString('ru-RU') }} ₽</span>
+                <span class="text-primary">{{ Math.round(product.price * (1 - product.discount / 100)).toLocaleString('ru-RU') }} ₽</span>
+                <span class="inline-block bg-red-500 text-white text-xs px-2 py-0.5 rounded-full ml-3 align-middle">-{{ product.discount }}%</span>
+              </template>
+              <template v-else>
+                {{ product.price.toLocaleString('ru-RU') }} ₽
+              </template>
+            </div>
 
              <!-- Buttons -->
              <div class="flex flex-col gap-3 mb-8">

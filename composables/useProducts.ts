@@ -21,6 +21,7 @@ export interface Product {
   characteristics?: string
   images?: string[]
   colorVariants?: ProductColorVariant[]
+  discount: number
   rating: number
   reviewsCount: number
   questionsCount: number

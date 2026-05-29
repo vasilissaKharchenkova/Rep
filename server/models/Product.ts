@@ -21,6 +21,7 @@ export interface IProduct extends Document {
   characteristics?: string
   images?: string[]
   colorVariants?: IProductColorVariant[]
+  discount: number
   rating: number
   reviewsCount: number
   questionsCount: number
@@ -43,6 +44,7 @@ const ProductSchema = new Schema<IProduct>(
     characteristics: { type: String, default: '' },
     images: [{ type: String }],
     colorVariants: [{ name: String, color: String, image: String, images: [String] }],
+    discount: { type: Number, default: 0, min: 0, max: 100 },
     rating: { type: Number, default: 0 },
     reviewsCount: { type: Number, default: 0 },
     questionsCount: { type: Number, default: 0 }

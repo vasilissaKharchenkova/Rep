@@ -41,6 +41,7 @@ const activeColorHex = ref('')
 const activePriceMin = ref(0)
 const activePriceMax = ref(150000)
 const onlyInStock = ref(false)
+const onlyOnSale = ref(false)
 const sortBy = ref('default')
 const gridColumns = ref(3)
 
@@ -103,6 +104,10 @@ const filteredProducts = computed(() => {
   if (onlyInStock.value) {
     result = result.filter(p => p.inStock)
   }
+  // on sale
+  if (onlyOnSale.value) {
+    result = result.filter(p => p.discount > 0)
+  }
   // sort
   switch (sortBy.value) {
     case 'price-asc':
@@ -150,6 +155,7 @@ const resetAllFilters = () => {
   activePriceMin.value = 0
   activePriceMax.value = 150000
   onlyInStock.value = false
+  onlyOnSale.value = false
   sortBy.value = 'default'
 }
 
@@ -160,6 +166,7 @@ const hasActiveFilters = computed(() => {
     || activePriceMin.value > 0
     || activePriceMax.value < 150000
     || onlyInStock.value
+    || onlyOnSale.value
 })
 
 const formatPrice = (price) => price.toLocaleString('ru-RU')
@@ -386,6 +393,24 @@ if (typeof window !== 'undefined') {
               </span>
             </button>
 
+            <!-- On Sale toggle -->
+            <button
+              @click="onlyOnSale = !onlyOnSale"
+              class="flex items-center gap-2 px-4 py-2.5 border rounded text-sm font-body transition-all cursor-pointer bg-white"
+              :class="onlyOnSale ? 'border-red-500 bg-red-50 text-red-600' : 'border-border text-textMain hover:border-red-400'"
+            >
+              <span class="uppercase text-[11px] tracking-wider text-gray-400">Скидка</span>
+              <span class="font-medium">товары со скидкой</span>
+              <span
+                class="w-4 h-4 rounded border flex-shrink-0 flex items-center justify-center transition-colors"
+                :class="onlyOnSale ? 'bg-red-500 border-red-500' : 'border-border'"
+              >
+                <svg v-if="onlyOnSale" class="w-2.5 h-2.5 text-white" viewBox="0 0 12 12" fill="none">
+                  <path d="M2 6L5 9L10 3" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+              </span>
+            </button>
+
             <!-- Reset filters button -->
             <button
               v-if="hasActiveFilters"
@@ -598,7 +623,15 @@ if (typeof window !== 'undefined') {
             </div>
             <div class="pt-4">
               <h3 class="font-body text-textMain text-sm uppercase tracking-wider">{{ product.name }}</h3>
-              <p class="font-body text-textMain mt-1 text-sm">{{ product.price.toLocaleString('ru-RU') }} ₽</p>
+              <p class="font-body text-textMain mt-1 text-sm">
+                <template v-if="product.discount > 0">
+                  <span class="text-gray-400 line-through mr-1">{{ product.price.toLocaleString('ru-RU') }} ₽</span>
+                  <span class="text-red-500 font-medium">{{ Math.round(product.price * (1 - product.discount / 100)).toLocaleString('ru-RU') }} ₽</span>
+                </template>
+                <template v-else>
+                  {{ product.price.toLocaleString('ru-RU') }} ₽
+                </template>
+              </p>
               <div class="flex items-center gap-1.5 mt-1.5">
                 <span v-if="product.colorVariants?.[0]?.color" class="w-3 h-3 rounded-full inline-block border border-border" :style="{ backgroundColor: product.colorVariants[0].color }"></span>
                 <span class="text-[11px] text-gray-400">{{ styles.find(s => s.id === product.styleId)?.name }}</span>

@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, onMounted, computed } from 'vue'
+import { ref, computed } from 'vue'
 import { useRoute } from 'vue-router'
 import { useCart } from '~/composables/useCart'
 import { useCollections } from '~/composables/useCollections'
@@ -9,33 +9,33 @@ const { fetchCollection } = useCollections()
 const { addItem } = useCart()
 const route = useRoute()
 
-const collection = ref<Collection | null>(null)
-const loading = ref(true)
-const error = ref('')
+const slug = route.params.id as string
+
+const { data: collection, pending: loading, error } = await useAsyncData<Collection | null>(
+  `collection-${slug}`,
+  async () => {
+    if (!slug) return null
+    return await fetchCollection(slug)
+  }
+)
+
+const fetchError = computed(() => {
+  if (!slug) return 'Коллекция не указана'
+  if (error.value || !collection.value) return 'Коллекция не найдена'
+  return null
+})
+
 const addedToCart = ref(false)
 const itemAddedMessages = ref<Record<number, boolean>>({})
 
-onMounted(async () => {
-  const slug = route.params.id as string
-  if (!slug) {
-    error.value = 'Коллекция не указана'
-    loading.value = false
-    return
-  }
-  const data = await fetchCollection(slug)
-  if (data) {
-    collection.value = data
-  } else {
-    error.value = 'Коллекция не найдена'
-  }
-  loading.value = false
-})
-
 // ─── SEO ────────────────────────────────────
+const collectionTitle = computed(() => collection.value ? `${collection.value.name} — CLICKWOOD` : 'CLICKWOOD')
+const collectionDescription = computed(() => collection.value?.description?.slice(0, 160) || 'Готовые интерьерные решения')
+
 useHead({
-  title: computed(() => collection.value ? `${collection.value.name} — CLICKWOOD` : 'CLICKWOOD'),
+  title: collectionTitle,
   meta: [
-    { name: 'description', content: computed(() => collection.value?.description?.slice(0, 160) || 'Готовые интерьерные решения') }
+    { name: 'description', content: collectionDescription }
   ]
 })
 
@@ -91,7 +91,7 @@ const addAllToCart = () => {
     <div class="text-center py-20">
       <div class="text-6xl mb-4">🔍</div>
       <h2 class="font-heading text-textMain text-3xl mb-4">Решение не найдено</h2>
-      <p class="font-body text-textMain/70 mb-8">{{ error || 'Запрошенный комплект не существует' }}</p>
+      <p class="font-body text-textMain/70 mb-8">{{ fetchError || 'Запрошенный комплект не существует' }}</p>
       <NuxtLink to="/collections"
         class="inline-block px-8 py-3 bg-primary text-white rounded-xl font-body text-lg hover:bg-primaryDark transition-colors">
         Вернуться к решениям

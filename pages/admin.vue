@@ -54,6 +54,7 @@ const productForm = ref({
   name: '',
   article: '',
   price: 0,
+  discount: 0,
   categoryId: 'sofas',
   styleId: 'scandi',
   color: 'gray',
@@ -78,6 +79,7 @@ function startNewProduct() {
     name: '',
     article: '',
     price: 0,
+    discount: 0,
     categoryId: 'sofas',
     styleId: 'scandi',
     color: 'gray',
@@ -99,6 +101,7 @@ async function startEditProduct(id: number) {
       name: p.name || '',
       article: p.article || '',
       price: p.price || 0,
+      discount: p.discount || 0,
       categoryId: p.categoryId || 'sofas',
       styleId: p.styleId || 'scandi',
       color: p.color || 'gray',
@@ -124,6 +127,7 @@ function cancelEdit() {
 
 const saving = ref(false)
 const uploading = ref(false)
+const uploadingCollectionImage = ref(false)
 const newImageUrl = ref('')
 
 const uploadImages = async (files: FileList | null) => {
@@ -476,6 +480,23 @@ async function saveCollection() {
   }
 }
 
+async function uploadCollectionImage(files: FileList | null) {
+  if (!files || files.length === 0) return
+  uploadingCollectionImage.value = true
+  try {
+    const fd = new FormData()
+    fd.append('images', files[0])
+    const result: any = await authFetch('/api/upload', { method: 'POST', body: fd })
+    if (result?.urls?.[0]) {
+      collectionForm.value.image = result.urls[0]
+    }
+  } catch (e: any) {
+    alert(e?.data?.statusMessage || 'Ошибка загрузки изображения')
+  } finally {
+    uploadingCollectionImage.value = false
+  }
+}
+
 async function deleteCollection(col: any) {
   if (!confirm(`Удалить коллекцию "${col.name}"?`)) return
   try {
@@ -584,10 +605,15 @@ const styles = [
                 <input v-model="productForm.article" class="w-full px-4 py-3 border border-border rounded-xl" required />
               </div>
             </div>
-            <div class="grid grid-cols-3 gap-5">
+            <div class="grid grid-cols-4 gap-5">
               <div>
                 <label class="text-sm font-body text-gray-400 block mb-1">Цена (₽)</label>
                 <input v-model.number="productForm.price" type="number" class="w-full px-4 py-3 border border-border rounded-xl" required />
+              </div>
+              <div>
+                <label class="text-sm font-body text-gray-400 block mb-1">Скидка (%)</label>
+                <input v-model.number="productForm.discount" type="number" min="0" max="100" class="w-full px-4 py-3 border border-border rounded-xl" />
+                <p v-if="productForm.discount > 0" class="text-xs text-primary mt-1">Цена со скидкой: {{ formatPrice(Math.round(productForm.price * (1 - productForm.discount / 100))) }} ₽</p>
               </div>
               <div>
                 <label class="text-sm font-body text-gray-400 block mb-1">Категория</label>
@@ -734,6 +760,7 @@ const styles = [
                 <th class="text-left px-6 py-4 text-sm font-body text-gray-400">Название</th>
                 <th class="text-left px-6 py-4 text-sm font-body text-gray-400">Артикул</th>
                 <th class="text-left px-6 py-4 text-sm font-body text-gray-400">Цена</th>
+                <th class="text-left px-6 py-4 text-sm font-body text-gray-400">Скидка</th>
                 <th class="text-left px-6 py-4 text-sm font-body text-gray-400">Наличие</th>
                 <th class="text-right px-6 py-4 text-sm font-body text-gray-400">Действия</th>
               </tr>
@@ -744,6 +771,13 @@ const styles = [
                 <td class="px-6 py-4 font-body text-sm">{{ p.name }}</td>
                 <td class="px-6 py-4 font-body text-sm text-gray-400">{{ p.article }}</td>
                 <td class="px-6 py-4 font-body text-sm">{{ formatPrice(p.price) }} ₽</td>
+                <td class="px-6 py-4">
+                  <template v-if="p.discount > 0">
+                    <span class="text-primary font-medium">-{{ p.discount }}%</span>
+                    <span class="text-xs text-gray-400 block">{{ formatPrice(Math.round(p.price * (1 - p.discount / 100))) }} ₽</span>
+                  </template>
+                  <span v-else class="text-gray-400">—</span>
+                </td>
                 <td class="px-6 py-4">
                   <span :class="p.inStock ? 'text-green-600 bg-green-50' : 'text-red-600 bg-red-50'" class="px-3 py-1 rounded-full text-xs font-body">
                     {{ p.inStock ? 'В наличии' : 'Нет' }}
@@ -1043,11 +1077,13 @@ const styles = [
               </div>
             </div>
             <div>
-              <label class="text-sm font-body text-gray-400 block mb-1">Главное изображение (URL)</label>
+              <label class="text-sm font-body text-gray-400 block mb-1">Главное изображение</label>
               <div v-if="collectionForm.image" class="mb-2">
                 <img :src="collectionForm.image" class="w-24 h-24 object-cover rounded-lg border border-border" />
               </div>
-              <input v-model="collectionForm.image" placeholder="https://..." class="w-full px-4 py-3 border border-border rounded-xl" />
+              <input type="file" accept="image/*" @change="uploadCollectionImage(($event.target as HTMLInputElement).files)" class="w-full px-4 py-3 border border-border rounded-xl file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:bg-primary file:text-white file:cursor-pointer" />
+              <input v-model="collectionForm.image" placeholder="Или введите URL" class="w-full mt-2 px-4 py-3 border border-border rounded-xl" />
+              <div v-if="uploadingCollectionImage" class="text-sm text-primary mt-1">Загрузка...</div>
             </div>
             <div>
               <label class="text-sm font-body text-gray-400 block mb-1">Краткое описание</label>

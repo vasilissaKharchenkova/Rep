@@ -12,6 +12,7 @@ export default defineEventHandler(async (event) => {
   if (query.style && query.style !== 'all') filter.styleId = query.style
   if (query.color && query.color !== 'all') filter.color = query.color
   if (query.inStock === 'true') filter.inStock = true
+  if (query.onSale === 'true') filter.discount = { $gt: 0 }
 
   if (query.priceMin || query.priceMax) {
     filter.price = {}

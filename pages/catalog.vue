@@ -611,11 +611,13 @@ if (typeof window !== 'undefined') {
             class="group cursor-pointer block"
           >
             <div class="relative overflow-hidden">
-              <img
+              <NuxtImg
                 :src="product.image"
                 :alt="product.name"
                 class="w-full h-[320px] object-cover transition-transform duration-500 group-hover:scale-105"
                 :class="{ 'opacity-50': !product.inStock }"
+                format="webp"
+                loading="lazy"
               />
               <div v-if="!product.inStock" class="absolute top-3 left-3 bg-gray-800/80 text-white text-[10px] uppercase tracking-wider px-3 py-1 rounded-full font-body">
                 нет в наличии

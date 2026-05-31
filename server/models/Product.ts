@@ -25,6 +25,8 @@ export interface IProduct extends Document {
   rating: number
   reviewsCount: number
   questionsCount: number
+  showOnSlider: boolean
+  sliderPosition: number
   createdAt: Date
   updatedAt: Date
 }
@@ -47,7 +49,9 @@ const ProductSchema = new Schema<IProduct>(
     discount: { type: Number, default: 0, min: 0, max: 100 },
     rating: { type: Number, default: 0 },
     reviewsCount: { type: Number, default: 0 },
-    questionsCount: { type: Number, default: 0 }
+    questionsCount: { type: Number, default: 0 },
+    showOnSlider: { type: Boolean, default: false },
+    sliderPosition: { type: Number, default: 0 }
   },
   { timestamps: true }
 )

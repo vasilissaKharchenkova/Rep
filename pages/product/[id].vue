@@ -163,7 +163,7 @@ const onTouchEnd = (e: TouchEvent) => {
                    @click="selectImage(index)"
                    class="w-[120px] h-[120px] border-2 cursor-pointer transition-all"
                    :class="{ 'border-primary': activeImage === index, 'border-transparent': activeImage !== index }">
-                <img :src="image" class="w-full h-full object-cover" />
+                <NuxtImg :src="image" class="w-full h-full object-cover" format="webp" />
               </div>
             </div>
             
@@ -171,7 +171,7 @@ const onTouchEnd = (e: TouchEvent) => {
             <div class="flex-1 relative select-none"
                  @touchstart="onTouchStart"
                  @touchend="onTouchEnd">
-              <img :src="currentVariantImages[activeImage] || currentVariantMainImage" :alt="product.name" class="w-full max-h-[500px] object-contain" />
+              <NuxtImg :src="currentVariantImages[activeImage] || currentVariantMainImage" :alt="product.name" class="w-full max-h-[500px] object-contain" format="webp" />
               
               <!-- Arrow buttons -->
               <button v-if="currentVariantImages.length > 1"

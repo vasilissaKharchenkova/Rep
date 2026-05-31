@@ -1,7 +1,14 @@
 import { defineEventHandler, createError } from 'h3'
 import multer from 'multer'
 import path from 'path'
+import fs from 'fs/promises'
 import { adminGuard } from '../utils/auth'
+import { optimizeImage, getWebPFilename } from '../utils/image'
+import { createCache } from '../utils/cache'
+
+// Import the cache instance to invalidate after upload
+// We create a separate cache instance just for invalidation access
+const cache = createCache<any>(0)
 
 const uploadDir = process.env.UPLOAD_DIR || 'public/images'
 
@@ -10,8 +17,7 @@ const storage = multer.diskStorage({
     cb(null, uploadDir)
   },
   filename: (req, file, cb) => {
-    const ext = path.extname(file.originalname)
-    const name = Date.now() + '-' + Math.round(Math.random() * 1e9) + ext
+    const name = Date.now() + '-' + Math.round(Math.random() * 1e9)
     cb(null, name)
   }
 })
@@ -32,7 +38,27 @@ export default defineEventHandler(async (event) => {
     throw createError({ statusCode: 400, statusMessage: 'No files uploaded' })
   }
 
-  return {
-    urls: files.map((f: any) => `/images/${f.filename}`)
+  const urls: string[] = []
+
+  for (const file of files) {
+    const buffer = await fs.readFile(file.path)
+    const optimizedBuffer = await optimizeImage(buffer, { width: 1200, quality: 85 })
+
+    const webpFilename = getWebPFilename(file.filename)
+    const webpPath = path.join(uploadDir, webpFilename)
+
+    await fs.writeFile(webpPath, optimizedBuffer)
+
+    // Delete the original uploaded file
+    await fs.unlink(file.path).catch(() => {})
+
+    urls.push(`/images/${webpFilename}`)
   }
+
+  // Invalidate server cache after upload
+  cache.invalidatePrefix('products:')
+  cache.invalidatePrefix('product:')
+  cache.invalidatePrefix('slider:')
+
+  return { urls }
 })

@@ -1,131 +1,98 @@
 # Implementation Plan
 
-## Overview
-Комплексная оптимизация производительности и исправление ошибок в Nuxt 4 + MongoDB интернет-магазине мебели CLICKWOOD для улучшения скорости загрузки, SEO и стабильности работы в локальной сети.
+Оптимизация и исправление ошибок в Nuxt 4 проекте интернет-магазина CLICKWOOD.
 
-Проект представляет собой SPA (ssr: false) на Nuxt 4 с Tailwind CSS, MongoDB/Mongoose и JWT-аутентификацией. Сайт будет разворачиваться на локальном сервере внутри закрытой сети, где Node.js доступен. Основные проблемы: отключенный SSR (все страницы грузятся как клиентское приложение), неоптимизированные изображения, N+1 запросы к БД в коллекциях, баги в seed-данных, логике корзины, небезопасный HTTP запрос к внешнему API. План включает исправление всех найденных багов, включение SSR, оптимизацию запросов к БД, изображений и клиентского кода.
+## [Overview]
 
----
+Комплексное исправление ошибок и оптимизация существующего кода интернет-магазина мебели CLICKWOOD на Nuxt 4 с MongoDB.
 
-## Types
-Изменения типов не требуются — все интерфейсы остаются прежними, добавятся только новые типы для опций кэширования.
+Анализ выявил 10 проблем: от багов фильтрации до нерабочих путей к изображениям и неиспользуемого кэша. План охватывает серверную (API, модели, утилиты) и клиентскую (composables, pages, components) части. Основные направления: интеграция серверного кэша, исправление фильтрации по цвету, удаление дублирования типов и интерфейсов, исправление путей к статическим ресурсам, очистка dead code, улучшение SSR-безопасности.
 
-Новые локальные типы (внутри файлов):
-- `CacheEntry<T>`: `{ data: T; timestamp: number }` — для кэша API-запросов на клиенте
+## [Types]
 
----
+Удаление дублирующегося клиентского интерфейса Product из composables/useProducts.ts и связывание клиентского кода с серверным IProduct через единый импорт.
 
-## Files
+Конкретные изменения:
+- Удалить `interface ProductColorVariant` и `interface Product` из `composables/useProducts.ts`
+- Импортировать `IProduct` и `IProductColorVariant` из `server/models/Product`
+- Обновить все composables и компоненты, использующие старые типы
+- Исправить поле _id в типах: клиент получает `_id` как строку от API, сервер использует ObjectId
 
-### Новые файлы:
-- `server/utils/cache.ts` — утилита серверного кэширования данных MongoDB (in-memory Map с TTL)
+## [Files]
 
-### Модифицируемые файлы:
+Изменения затрагивают 12 файлов: исправление багов, удаление дублирования, интеграция кэша, очистка dead code.
 
-**Конфигурация и ядро:**
-1. `nuxt.config.ts` — включить SSR (`ssr: true`), добавить оптимизации Vite (code splitting, tree shaking), добавить meta-тэги SEO, настроить `buildAssetsDir`, включить сжатие, добавить prerender для статических страниц
-2. `app.vue` — добавить глобальные SEO meta, добавить скрипт аналитики/мониторинга, настроить preconnect для шрифтов
+- `composables/useProducts.ts` — удаление дублирующихся интерфейсов, импорт из серверной модели, удаление клиентского кэша и функции `searchProducts`
+- `composables/useCart.ts` — удаление неиспользуемой функции `searchProducts`, вынос динамического импорта `useAuth` в статический
+- `composables/useCity.ts` — вызов `loadCity()` без `onMounted` (loadCity сам проверяет process.client)
+- `server/api/products.get.ts` — исправление фильтрации по цвету, интеграция серверного кэша
+- `server/api/products/[id].get.ts` — интеграция серверного кэша
+- `server/api/slider/index.get.ts` — интеграция серверного кэша, добавление try/catch
+- `server/utils/image.ts` — исправление `getWebPFilename` для сохранения оригинальных имён
+- `server/api/upload.post.ts` — использование исправленного именования, интеграция серверного кэша (инвалидация)
+- `pages/index.vue` — исправление путей к изображениям с `../public/images/` на `/images/`
+- `pages/catalog.vue` — перенос `window.addEventListener` в `onMounted` с guard `process.client`
+- `pages/admin.vue` — исправление вызова `loadSliderProducts` при активации таба слайдера
+- `nuxt.config.ts` — проверка runtimeConfig (убрать process.env из определения, использовать переменные окружения через defaults)
 
-**Серверные файлы (оптимизация + исправление багов):**
-3. `server/utils/mongoose.ts` — добавить настройки пула соединений, replicaSet, индексы
-4. `server/api/collections.get.ts` — исправить N+1: загрузить все коллекции и все продукты одним запросом (`$in`), соединить в памяти
-5. `server/api/products/seed.post.ts` — исправить seed-данные: заменить поле `colors` на `colorVariants` в соответствии со схемой Product
-6. `server/utils/phone.ts` — (необязательно) добавить обработку краевых случаев
+## [Functions]
 
-**Клиентские композаблы (оптимизация):**
-7. `composables/useProducts.ts` — добавить кэширование ответов с TTL, добавить серверный поиск с пагинацией
-8. `composables/useCollections.ts` — добавить кэширование
-9. `composables/useCity.ts` — заменить `http://ip-api.com/json` на `https://ip-api.com/json` (HTTPS) и добавить try/catch с fallback на localStorage
+**Новые функции:**
+- `server/utils/cache.ts` — export функции `invalidatePrefix` (инвалидация по префиксу ключа)
 
-**Компоненты (оптимизация):**
-10. `components/Header.vue` — динамический импорт Swiper, добавить debounce для поиска с AbortController, добавить `navigateTo` из `vue-router`
-11. `components/Footer.vue` — (опционально) статика без изменений
+**Модифицированные функции:**
+- `server/utils/image.ts` — `getWebPFilename` изменена для сохранения оригинального имени файла
+- `server/api/products.get.ts` — добавлено кэширование ответа через `createCache`, исправлена логика цветового фильтра
+- `server/api/products/[id].get.ts` — добавлено кэширование
+- `server/api/slider/index.get.ts` — добавлено кэширование и try/catch
+- `server/api/upload.post.ts` — добавлена инвалидация кэша после загрузки
+- `composables/useProducts.ts` — удаление `loadCache`, `searchProducts`, `searchLocalProducts`; `fetchProduct` и `fetchProducts` теперь без кэша на клиенте
+- `composables/useCart.ts` — `submitOrder` использует статический импорт `useAuth` вместо динамического
+- `composables/useCity.ts` — `loadCity` вызывается в корне функции `useCity` (вне `onMounted`) для моментальной загрузки
+- `pages/catalog.vue` — `window.addEventListener` перенесён в `onMounted`
 
-**Страницы (оптимизация + баги):**
-12. `pages/index.vue` — переписать Swiper инициализацию: динамический импорт (`defineAsyncComponent`) для секций с каруселями, использовать `useLazyAsyncData` для футера/баннеров, загружать изображения с lazy loading
-13. `pages/catalog.vue` — добавить `useLazyAsyncData` для загрузки товаров, виртуальную прокрутку/пагинацию, использовать `<NuxtImg>` для изображений
-14. `pages/product/[id].vue` — добавить `useHead` для SEO мета-тэгов, динамический импорт `ProductReviews` и `ProductQuestions`, prefetch соседних товаров
-15. `pages/checkout.vue` — исправить двойной `onMounted` (один для пре-филла + второй ненужный)
-16. `pages/success.vue` — исправить двойной `onMounted` при объявлении таймера
-17. `pages/cart.vue` — динамический импорт `CartItem`
-18. `pages/collections.vue` — динамический импорт, кэширование
-19. `pages/collection/[id].vue` — useHead для SEO, динамический импорт
-20. `pages/admin.vue` — исправить общую переменную `newVariantImageUrl` (сейчас одна на все варианты), разделить на массив per-variant
+**Удалённые функции:**
+- `composables/useProducts.ts` — `loadCache`, `searchProducts` (standalone export), `searchLocalProducts`
+- `composables/useCart.ts` — `searchProducts` (дубликат)
 
----
+## [Classes]
 
-## Functions
+Изменения классов/компонентов не требуются. Все изменения касаются функций и логики внутри существующих файлов.
 
-### Новые функции:
-- `server/utils/cache.ts`:
-  - `createCache<T>(ttlMs: number): { get(key: string): T | undefined; set(key: string, data: T): void; invalidate(key: string): void; clear(): void }`
+## [Dependencies]
 
-### Модифицированные функции:
+Изменения зависимостей не требуются. Все необходимые пакеты уже установлены:
+- `nuxt` ^4.4.2
+- `mongoose` ^9.4.1
+- `sharp` ^0.34.5
+- `swiper` ^12.1.3
+- `@nuxtjs/tailwindcss` ^6.14.0
+- `@nuxt/image` ^2.0.0
 
-**`server/api/collections.get.ts`:**
-- Изменить: заменить последовательные `Product.find()` на один `Product.find({ id: { $in: allProductIds } })`, затем сгруппировать по коллекциям в памяти
+## [Testing]
 
-**`composables/useProducts.ts`:**
-- Изменить `fetchProducts`: добавить кэширование с TTL 60000ms
-- Изменить `searchProducts`: добавить AbortController, передавать query на сервер с лимитом 5
+Ручное тестирование после каждого изменения:
 
-**`composables/useCity.ts`:**
-- Изменить `fetchCityByIP`: `http://` → `https://`
+1. Проверить загрузку главной страницы — слайдер с товарами, секции "Новая коллекция" и "Наши работы"
+2. Проверить каталог: фильтрация по категории, цене, цвету, стилю; сортировка; переключение сетки
+3. Проверить страницу товара: переключение изображений, выбор цвета, добавление в корзину
+4. Проверить корзину: добавление, удаление, изменение количества
+5. Проверить админ-панель: логин, просмотр заказов, управление товарами/слайдером/коллекциями
+6. Проверить загрузку изображений через админку
+7. Проверить отсутствие ошибок в консоли браузера и серверных логах
 
-**`pages/index.vue`:**
-- Изменить инициализацию Swiper: использовать `defineAsyncComponent` для секций, lazy load изображений
-- Переписать: убрать `setTimeout` для инициализации Swiper
+## [Implementation Order]
 
-**`pages/success.vue`:**
-- Исправить: объединить два `onMounted` в один
+Последовательность изменений минимизирует конфликты и позволяет тестировать каждый шаг:
 
-**`pages/admin.vue`:**
-- Исправить: заменить общую `const newVariantImageUrl = ref('')` на массив `newVariantImageUrls = ref<Record<number, string>>({})`
-
-**`components/Header.vue`:**
-- Исправить: добавить `import { navigateTo } from 'nuxt/app'` или использовать `useRouter().push()`
-
-**`composables/useCart.ts`:**
-- Исправить `removeItem`: текущая логика фильтрации некорректна — при `colorName` строка удаляет все элементы с совпадающим id, а не только конкретный вариант
-
----
-
-## Dependencies
-Новых зависимостей не требуется. Возможна установка:
-- `@nuxtjs/device` — для определения мобильных устройств (опционально)
-- `@nuxt/image` — для автоматической оптимизации изображений (но в локальной сети может не понадобиться, т.к. не будет CDN)
-
-Изменения:
-- В `package.json` уже есть все необходимые зависимости
-- В `nuxt.config.ts` модуль `@nuxtjs/tailwindcss` уже подключён
-
----
-
-## Testing
-
-**Ручное тестирование (QA checklist):**
-1. Открыть главную — карусели работают, изображения загружаются
-2. Перейти в каталог — фильтры работают, пагинация/подгрузка
-3. Перейти на карточку товара — SEO мета в заголовке, отзывы/вопросы загружаются
-4. Добавить в корзину через коллекцию — то же самое через "Купить комплект"
-5. Оформить заказ — редирект на success, данные корректные
-6. Проверить админку — CRUD товаров, заказов, коллекций
-7. Проверить авторизацию — логин/регистрация, профиль
-8. Проверить поиск — работает с debounce, показывает результаты
-9. Проверить выбор города — HTTPS запрос, сохранение в localStorage
-10. Запустить `npm run build` — сборка без ошибок
-
----
-
-## Implementation Order
-Реализация в порядке: сначала исправление критических багов, затем включение SSR, затем оптимизация производительности по убыванию эффекта.
-
-1. Исправить критические баги: seed-данные (colors→colorVariants), корзину (removeItem), double onMounted в success.vue, общую переменную URL в админке
-2. Исправить HTTP → HTTPS в ip-api.com
-3. Включить SSR в nuxt.config.ts, добавить SEO-мета в app.vue и страницы
-4. Исправить N+1 в коллекциях (collections.get.ts)
-5. Добавить кэширование API-запросов (серверное in-memory cache)
-6. Оптимизировать клиентские композаблы (кэш с TTL, AbortController для поиска)
-7. Динамические импорты для тяжёлых компонентов (Swiper, ProductReviews, ProductQuestions)
-8. Оптимизация изображений (lazy loading, NuxtImg)
-9. Финальная проверка и сборка
+1. Исправление `server/utils/image.ts` — `getWebPFilename` сохраняет оригинальное имя
+2. Интеграция серверного кэша: `server/api/products.get.ts`, `server/api/products/[id].get.ts`, `server/api/slider/index.get.ts`
+3. Исправление `server/api/products.get.ts` — фильтрация по цвету через `colorVariants.color`
+4. Инвалидация кэша в `server/api/upload.post.ts`
+5. Удаление дублирующихся интерфейсов и клиентского кэша в `composables/useProducts.ts`
+6. Очистка `composables/useCart.ts` — удаление дублирующейся `searchProducts`, статический импорт `useAuth`
+7. Исправление `composables/useCity.ts` — вызов `loadCity` вне `onMounted`
+8. Исправление путей к изображениям в `pages/index.vue`
+9. SSR-безопасность: исправление `window.addEventListener` в `pages/catalog.vue`
+10. Исправление вызова `loadSliderProducts` в `pages/admin.vue`
+11. Финальная проверка всех страниц и функциональности

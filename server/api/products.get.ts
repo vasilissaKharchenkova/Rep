@@ -1,6 +1,9 @@
 import { defineEventHandler, getQuery } from 'h3'
 import { connectDB } from '../utils/mongoose'
 import { Product } from '../models/Product'
+import { createCache } from '../utils/cache'
+
+const cache = createCache<any[]>(60000) // 1 minute TTL
 
 export default defineEventHandler(async (event) => {
   await connectDB()
@@ -10,7 +13,10 @@ export default defineEventHandler(async (event) => {
 
   if (query.category && query.category !== 'all') filter.categoryId = query.category
   if (query.style && query.style !== 'all') filter.styleId = query.style
-  if (query.color && query.color !== 'all') filter.color = query.color
+  if (query.color && query.color !== 'all') {
+    // Color filter via colorVariants array
+    filter['colorVariants.color'] = query.color
+  }
   if (query.inStock === 'true') filter.inStock = true
   if (query.onSale === 'true') filter.discount = { $gt: 0 }
 
@@ -25,6 +31,12 @@ export default defineEventHandler(async (event) => {
   else if (query.sort === 'price-desc') sort = { price: -1 }
   else if (query.sort === 'name') sort = { name: 1 }
 
+  // Generate cache key from query params
+  const cacheKey = 'products:' + JSON.stringify({ filter, sort })
+  const cached = cache.get(cacheKey)
+  if (cached) return cached
+
   const products = await Product.find(filter).sort(sort).lean()
+  cache.set(cacheKey, products)
   return products
 })

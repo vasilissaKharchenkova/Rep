@@ -1,10 +1,114 @@
-<script setup>
+<script setup lang="ts">
 import { ref, onMounted } from 'vue'
+import { useRouter } from 'vue-router'
 
-let collectionSwiper = ref(null)
-let worksSwiper = ref(null)
+const router = useRouter()
 
-onMounted(() => {
+const collectionSwiper = ref<any>(null)
+const worksSwiper = ref<any>(null)
+
+const sliderProducts = ref<any[]>([])
+const fixedVariant = ref<Record<number, string | null>>({})
+
+// Two permanent image slots per product. At any time one is visible (opacity 1),
+// the other is invisible (opacity 0). On switch we preload the new src into the
+// hidden slot, then toggle visibility — CSS transition handles the crossfade.
+const imgSrcA = ref<Record<number, string>>({})
+const imgSrcB = ref<Record<number, string>>({})
+const showA = ref<Record<number, boolean>>({})
+
+function preloadImage(src: string): Promise<void> {
+  return new Promise((resolve) => {
+    const img = new Image()
+    img.onload = () => resolve()
+    img.onerror = () => resolve()
+    img.src = src
+  })
+}
+
+async function switchImage(productId: number, newSrc: string) {
+  if (!newSrc) return
+
+  const currentVisible = showA.value[productId]
+  const currentSrc = currentVisible ? imgSrcA.value[productId] : imgSrcB.value[productId]
+  if (newSrc === currentSrc) return
+
+  // Preload the new image (background, invisible to user)
+  await preloadImage(newSrc)
+
+  // Step 1: put the new src into the HIDDEN slot (no visible change yet)
+  if (currentVisible) {
+    imgSrcB.value[productId] = newSrc
+  } else {
+    imgSrcA.value[productId] = newSrc
+  }
+
+  // Step 2: wait for browser to paint the new image at current opacity (hidden)
+  await new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve)))
+
+  // Step 3: now toggle visibility — browser will use CSS transition for the crossfade
+  showA.value[productId] = !currentVisible
+}
+
+async function fetchSliderProducts() {
+  try {
+    sliderProducts.value = await $fetch('/api/slider')
+    for (const p of sliderProducts.value) {
+      const src = p.image || ''
+      imgSrcA.value[p.id] = src
+      imgSrcB.value[p.id] = src  // both same initially (no visible crossfade needed)
+      showA.value[p.id] = true   // A is visible, B is hidden
+    }
+  } catch {
+    sliderProducts.value = []
+  }
+}
+
+function getMainImage(product: any): string {
+  return product.image || ''
+}
+
+function onSlideClick(productId: number) {
+  router.push(`/product/${productId}`)
+}
+
+function onVariantHover(productId: number, variantImage: string) {
+  if (fixedVariant.value[productId] === undefined) {
+    switchImage(productId, variantImage)
+  }
+}
+
+function onVariantLeave(productId: number) {
+  if (fixedVariant.value[productId] === undefined) {
+    const product = sliderProducts.value.find(p => p.id === productId)
+    if (product) {
+      switchImage(productId, getMainImage(product))
+    }
+  }
+}
+
+function onVariantClick(productId: number, variantImage: string) {
+  if (fixedVariant.value[productId] === variantImage) {
+    // Unfix - revert to main image
+    fixedVariant.value[productId] = undefined as any
+    const product = sliderProducts.value.find(p => p.id === productId)
+    if (product) {
+      switchImage(productId, getMainImage(product))
+    }
+  } else {
+    // Fix this variant
+    fixedVariant.value[productId] = variantImage
+    switchImage(productId, variantImage)
+  }
+}
+
+function isVariantFixed(productId: number, variantImage: string): boolean {
+  return fixedVariant.value[productId] === variantImage
+}
+
+onMounted(async () => {
+  await fetchSliderProducts()
+
   // Динамический импорт Swiper и инициализация после рендеринга DOM
   const initSwipers = async () => {
     const Swiper = (await import('swiper')).default
@@ -124,34 +228,40 @@ const nextWorks = () => worksSwiper.value?.slideNext()
         </div>
         <div class="collection-slider swiper">
           <div class="swiper-wrapper">
-            <div class="swiper-slide">
-              <div class="border border-border p-0">
-                <img src="../public/images/collect_stul.png" alt="Кресло" class="w-full h-[540px] object-cover" loading="lazy">
-              </div>
-            </div>
-            <div class="swiper-slide">
-              <div class="border border-border p-0">
-                <img src="../public/images/collect_stol.png" alt="Тумба" class="w-full h-[540px] object-cover" loading="lazy">
-              </div>
-            </div>
-            <div class="swiper-slide">
-              <div class="border border-border p-0">
-                <img src="../public/images/collect_tumb.png" alt="Диванчик" class="w-full h-[540px] object-cover" loading="lazy">
-              </div>
-            </div>
-            <div class="swiper-slide">
-              <div class="border border-border p-0">
-                <img src="../public/images/glas.png" alt="Обеденный стол" class="w-full h-[540px] object-cover" loading="lazy">
-              </div>
-            </div>
-            <div class="swiper-slide">
-              <div class="border border-border p-0">
-                <img src="../public/images/bestsellers2.png" alt="Современное кресло" class="w-full h-[540px] object-cover" loading="lazy">
-              </div>
-            </div>
-            <div class="swiper-slide">
-              <div class="border border-border p-0">
-                <img src="../public/images/052e466d89d06be4a45dc92e7adf52a8.jpg" alt="Мягкий диван" class="w-full h-[540px] object-cover" loading="lazy">
+            <div v-for="product in sliderProducts" :key="product.id" class="swiper-slide cursor-pointer" @click="onSlideClick(product.id)">
+              <div class="border border-border p-0 relative group">
+                <div class="w-full h-[540px] overflow-hidden relative bg-gray-100">
+                  <!-- Image A (visible when showA is true) -->
+                  <img
+                    :src="imgSrcA[product.id] || product.image"
+                    :alt="product.name"
+                    class="w-full h-full object-cover absolute inset-0 transition-all duration-500 ease-in-out"
+                    :class="showA[product.id] ? 'opacity-100' : 'opacity-0'"
+                    loading="lazy"
+                  />
+                  <!-- Image B (visible when showA is false) -->
+                  <img
+                    :src="imgSrcB[product.id] || product.image"
+                    :alt="product.name"
+                    class="w-full h-full object-cover absolute inset-0 transition-all duration-500 ease-in-out"
+                    :class="!showA[product.id] ? 'opacity-100' : 'opacity-0'"
+                    loading="lazy"
+                  />
+                </div>
+                <!-- Color variants -->
+                <div v-if="product.colorVariants && product.colorVariants.length > 0" class="absolute bottom-4 left-0 right-0 flex justify-center gap-2 px-4">
+                  <div
+                    v-for="variant in product.colorVariants"
+                    :key="variant.name"
+                    class="w-6 h-6 rounded-full border-2 border-white shadow-md cursor-pointer transition-all duration-200 hover:scale-125"
+                    :class="{ 'ring-2 ring-primary scale-110': isVariantFixed(product.id, variant.image || product.image) }"
+                    :style="{ backgroundColor: variant.color || '#ccc' }"
+                    :title="variant.name"
+                    @mouseenter="onVariantHover(product.id, variant.image || product.image)"
+                    @mouseleave="onVariantLeave(product.id)"
+                    @click.stop="onVariantClick(product.id, variant.image || product.image)"
+                  ></div>
+                </div>
               </div>
             </div>
           </div>

@@ -25,7 +25,7 @@ onMounted(async () => {
 })
 
 // ─── Active tab ──────────────────────────────
-const activeTab = ref<'dashboard' | 'products' | 'orders' | 'reviews' | 'questions' | 'collections' | 'order-detail'>('dashboard')
+const activeTab = ref<'dashboard' | 'products' | 'orders' | 'reviews' | 'questions' | 'collections' | 'slider' | 'order-detail'>('dashboard')
 
 // ═══════════════════════════════════════════════
 //  DASHBOARD TAB
@@ -391,6 +391,84 @@ async function deleteQuestion(id: string) {
 }
 
 // ═══════════════════════════════════════════════
+//  SLIDER TAB
+// ═══════════════════════════════════════════════
+const sliderProducts = ref<any[]>([])
+const showAddToSlider = ref(false)
+const selectedProductIdForSlider = ref<number | null>(null)
+
+async function loadSliderProducts() {
+  try {
+    sliderProducts.value = await authFetch('/api/slider')
+  } catch {
+    sliderProducts.value = []
+  }
+}
+
+async function addProductToSlider() {
+  if (selectedProductIdForSlider.value === null) return
+  try {
+    const maxPos = sliderProducts.value.reduce((max, p) => Math.max(max, p.sliderPosition || 0), 0)
+    await authFetch(`/api/products/${selectedProductIdForSlider.value}`, {
+      method: 'PUT',
+      body: { showOnSlider: true, sliderPosition: maxPos + 1 }
+    })
+    selectedProductIdForSlider.value = null
+    showAddToSlider.value = false
+    await loadSliderProducts()
+    await loadProducts()
+  } catch (e: any) {
+    alert(e?.data?.statusMessage || 'Ошибка добавления в слайдер')
+  }
+}
+
+async function removeFromSlider(productId: number) {
+  if (!confirm('Убрать товар из слайдера?')) return
+  try {
+    await authFetch(`/api/products/${productId}`, {
+      method: 'PUT',
+      body: { showOnSlider: false, sliderPosition: 0 }
+    })
+    await loadSliderProducts()
+    await loadProducts()
+  } catch (e: any) {
+    alert(e?.data?.statusMessage || 'Ошибка удаления из слайдера')
+  }
+}
+
+async function moveSliderItemUp(productId: number) {
+  const idx = sliderProducts.value.findIndex(p => p.id === productId)
+  if (idx <= 0) return
+  const prev = sliderProducts.value[idx - 1]
+  const curr = sliderProducts.value[idx]
+  try {
+    await Promise.all([
+      authFetch(`/api/products/${prev.id}`, { method: 'PUT', body: { sliderPosition: curr.sliderPosition } }),
+      authFetch(`/api/products/${curr.id}`, { method: 'PUT', body: { sliderPosition: prev.sliderPosition } })
+    ])
+    await loadSliderProducts()
+  } catch {}
+}
+
+async function moveSliderItemDown(productId: number) {
+  const idx = sliderProducts.value.findIndex(p => p.id === productId)
+  if (idx >= sliderProducts.value.length - 1) return
+  const next = sliderProducts.value[idx + 1]
+  const curr = sliderProducts.value[idx]
+  try {
+    await Promise.all([
+      authFetch(`/api/products/${next.id}`, { method: 'PUT', body: { sliderPosition: curr.sliderPosition } }),
+      authFetch(`/api/products/${curr.id}`, { method: 'PUT', body: { sliderPosition: next.sliderPosition } })
+    ])
+    await loadSliderProducts()
+  } catch {}
+}
+
+const productsNotInSlider = computed(() => {
+  return products.value.filter((p: any) => !p.showOnSlider)
+})
+
+// ═══════════════════════════════════════════════
 //  COLLECTIONS TAB
 // ═══════════════════════════════════════════════
 const { collections, fetchCollections } = useCollections()
@@ -564,6 +642,11 @@ const styles = [
                 class="px-6 py-3 font-body text-sm transition-colors border-b-2 -mb-px cursor-pointer bg-transparent"
                 :class="activeTab === 'collections' ? 'border-primary text-primary font-medium' : 'border-transparent text-gray-400 hover:text-textMain'">
           📚 Коллекции
+        </button>
+        <button @click="activeTab = 'slider'; loadSliderProducts()" 
+                class="px-6 py-3 font-body text-sm transition-colors border-b-2 -mb-px cursor-pointer bg-transparent"
+                :class="activeTab === 'slider' ? 'border-primary text-primary font-medium' : 'border-transparent text-gray-400 hover:text-textMain'">
+          🎠 Слайдер
         </button>
       </div>
 
@@ -1171,6 +1254,80 @@ const styles = [
                 <td class="px-6 py-4 text-right">
                   <button @click="startEditCollection(col)" class="text-primary hover:underline text-sm mr-4 border-none bg-transparent cursor-pointer">Редактировать</button>
                   <button @click="deleteCollection(col)" class="text-red-500 hover:underline text-sm border-none bg-transparent cursor-pointer">Удалить</button>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- ══════════════════════════════════════ -->
+      <!--  SLIDER TAB                          -->
+      <!-- ══════════════════════════════════════ -->
+      <div v-if="activeTab === 'slider'">
+        <div class="flex items-center justify-between mb-4">
+          <h2 class="font-heading text-2xl text-textMain">Управление слайдером «Новая коллекция»</h2>
+          <button @click="showAddToSlider = !showAddToSlider" class="px-6 py-3 bg-primary text-white rounded-xl hover:bg-primary/90 transition-colors cursor-pointer border-none">
+            + Добавить товар
+          </button>
+        </div>
+
+        <!-- Add product to slider -->
+        <div v-if="showAddToSlider" class="bg-white rounded-xl border border-border p-6 mb-8">
+          <h3 class="font-heading text-lg text-textMain mb-4">Добавить товар в слайдер</h3>
+          <div class="flex items-center gap-3">
+            <select v-model.number="selectedProductIdForSlider" class="flex-1 px-4 py-3 border border-border rounded-xl bg-white">
+              <option :value="null" disabled>Выберите товар</option>
+              <option v-for="p in productsNotInSlider" :key="p.id" :value="p.id">{{ p.name }} (ID: {{ p.id }})</option>
+            </select>
+            <button @click="addProductToSlider" :disabled="selectedProductIdForSlider === null" class="px-6 py-3 bg-primary text-white rounded-xl hover:bg-primary/90 disabled:opacity-50 cursor-pointer border-none">
+              Добавить
+            </button>
+            <button @click="showAddToSlider = false; selectedProductIdForSlider = null" class="px-6 py-3 border border-border rounded-xl hover:bg-gray-50 cursor-pointer bg-white">
+              Отмена
+            </button>
+          </div>
+        </div>
+
+        <!-- Slider products table -->
+        <div v-if="sliderProducts.length === 0" class="text-center py-20 text-gray-400 bg-white rounded-xl border border-border">
+          В слайдере нет товаров. Нажмите «Добавить товар», чтобы начать.
+        </div>
+
+        <div v-else class="bg-white rounded-xl border border-border overflow-hidden">
+          <table class="w-full">
+            <thead class="bg-gray-50">
+              <tr>
+                <th class="text-left px-6 py-4 text-sm font-body text-gray-400 w-20">Позиция</th>
+                <th class="text-left px-6 py-4 text-sm font-body text-gray-400">Изображение</th>
+                <th class="text-left px-6 py-4 text-sm font-body text-gray-400">Название</th>
+                <th class="text-left px-6 py-4 text-sm font-body text-gray-400">Цена</th>
+                <th class="text-right px-6 py-4 text-sm font-body text-gray-400">Действия</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr v-for="(p, index) in sliderProducts" :key="p.id" class="border-t border-border hover:bg-gray-50">
+                <td class="px-6 py-4">
+                  <div class="flex items-center gap-1">
+                    <button @click="moveSliderItemUp(p.id)" :disabled="index === 0"
+                      class="w-7 h-7 flex items-center justify-center border border-border rounded hover:bg-gray-50 disabled:opacity-30 disabled:cursor-not-allowed cursor-pointer bg-white">
+                      <svg class="w-3 h-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="18 15 12 9 6 15"/></svg>
+                    </button>
+                    <span class="text-sm font-body text-gray-400 w-6 text-center">{{ index + 1 }}</span>
+                    <button @click="moveSliderItemDown(p.id)" :disabled="index === sliderProducts.length - 1"
+                      class="w-7 h-7 flex items-center justify-center border border-border rounded hover:bg-gray-50 disabled:opacity-30 disabled:cursor-not-allowed cursor-pointer bg-white">
+                      <svg class="w-3 h-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
+                    </button>
+                  </div>
+                </td>
+                <td class="px-6 py-4">
+                  <img v-if="p.image" :src="p.image" class="w-16 h-16 object-cover rounded-lg border border-border" />
+                  <div v-else class="w-16 h-16 bg-gray-100 rounded-lg border border-border flex items-center justify-center text-xs text-gray-400">Нет</div>
+                </td>
+                <td class="px-6 py-4 font-body text-sm">{{ p.name }}</td>
+                <td class="px-6 py-4 font-body text-sm">{{ formatPrice(p.price) }} ₽</td>
+                <td class="px-6 py-4 text-right">
+                  <button @click="removeFromSlider(p.id)" class="text-red-500 hover:underline text-sm border-none bg-transparent cursor-pointer ml-4">Удалить</button>
                 </td>
               </tr>
             </tbody>

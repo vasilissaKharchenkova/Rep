@@ -182,7 +182,7 @@ const nextWorks = () => worksSwiper.value?.slideNext()
 
     <!-- Newsletter section -->
     <section class="bg-primary mt-20 pt-10 pb-12 relative">
-      <img src="../public/images/4df9807e9d3e419d1c0d0bd39c60a19f-no-bg-preview (carve.photos) 2.png" alt="Стул" class="absolute left-8 -top-10 h-[350px] object-contain z-10" style="filter: drop-shadow(0 8px 12px rgba(0,0,0,0.25));">
+      <img src="/images/4df9807e9d3e419d1c0d0bd39c60a19f-no-bg-preview (carve.photos) 2.png" alt="Стул" class="absolute left-8 -top-10 h-[350px] object-contain z-10" style="filter: drop-shadow(0 8px 12px rgba(0,0,0,0.25));">
       <div class="container mx-auto px-4">
         <h2 class="text-white text-[clamp(1.5rem,3vw,2.25rem)] text-center mb-10 font-[Arsenal_SC]">
           Дополнительная скидка до 5 000 ₽ за подписку на рассылку
@@ -286,14 +286,14 @@ const nextWorks = () => worksSwiper.value?.slideNext()
             
             <!-- Две маленькие картинки прижаты к самому низу -->
             <div class="grid grid-cols-2 gap-6 mt-auto">
-              <img src="../public/images/about_stol.png" alt="Стол" class="w-full h-full object-cover">
-              <img src="../public/images/about_divan.png" alt="Кресло" class="w-full h-full object-cover">
+              <img src="/images/about_stol.png" alt="Стол" class="w-full h-full object-cover">
+              <img src="/images/about_divan.png" alt="Кресло" class="w-full h-full object-cover">
             </div>
           </div>
 
           <!-- Большая картинка справа занимает всю высоту -->
           <div class="col-span-1">
-            <img src="../public/images/about_divan_2.png" alt="Диван" class="w-full h-full object-cover">
+            <img src="/images/about_divan_2.png" alt="Диван" class="w-full h-full object-cover">
           </div>
         </div>
       </div>
@@ -321,32 +321,32 @@ const nextWorks = () => worksSwiper.value?.slideNext()
           <div class="swiper-wrapper">
             <div class="swiper-slide">
               <div class="border border-border p-0">
-                <img src="../public/images/7e4e3f32978cee127ef43a663a42e67d 1.png" alt="Проект 1" class="w-full h-[555px] object-cover">
+                <img src="/images/7e4e3f32978cee127ef43a663a42e67d 1.png" alt="Проект 1" class="w-full h-[555px] object-cover">
               </div>
             </div>
             <div class="swiper-slide">
               <div class="border border-border p-0">
-                <img src="../public/images/6be3d25fdaf6d60d8a89454f3e4527be 1.png" alt="Проект 2" class="w-full h-[555px] object-cover">
+                <img src="/images/6be3d25fdaf6d60d8a89454f3e4527be 1.png" alt="Проект 2" class="w-full h-[555px] object-cover">
               </div>
             </div>
             <div class="swiper-slide">
               <div class="border border-border p-0">
-                <img src="../public/images/722f587adca9f6a9e5ea8c50f9cd79ca 1.png" alt="Проект 3" class="w-full h-[555px] object-cover">
+                <img src="/images/722f587adca9f6a9e5ea8c50f9cd79ca 1.png" alt="Проект 3" class="w-full h-[555px] object-cover">
               </div>
             </div>
             <div class="swiper-slide">
               <div class="border border-border p-0">
-                <img src="../public/images/3998af9f9062ea929622b61627c0015f.jpg" alt="Проект 4" class="w-full h-[555px] object-cover">
+                <img src="/images/3998af9f9062ea929622b61627c0015f.jpg" alt="Проект 4" class="w-full h-[555px] object-cover">
               </div>
             </div>
             <div class="swiper-slide">
               <div class="border border-border p-0">
-                <img src="../public/images/1172ae6558b40a5c8ec6e2e8af3e8d52.jpg" alt="Проект 5" class="w-full h-[555px] object-cover">
+                <img src="/images/1172ae6558b40a5c8ec6e2e8af3e8d52.jpg" alt="Проект 5" class="w-full h-[555px] object-cover">
               </div>
             </div>
             <div class="swiper-slide">
               <div class="border border-border p-0">
-                <img src="../public/images/797f407b8a9213dda489d6ce38310d71.jpg" alt="Проект 6" class="w-full h-[555px] object-cover">
+                <img src="/images/797f407b8a9213dda489d6ce38310d71.jpg" alt="Проект 6" class="w-full h-[555px] object-cover">
               </div>
             </div>
           </div>

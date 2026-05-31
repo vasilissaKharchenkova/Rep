@@ -5,7 +5,7 @@ import { useCart } from '~/composables/useCart'
 import ProductReviews from '~/components/ProductReviews.vue'
 import ProductQuestions from '~/components/ProductQuestions.vue'
 import { useProducts } from '~/composables/useProducts'
-import type { Product } from '~/composables/useProducts'
+import type { ProductData } from '~/server/types/product'
 
 const { addItem } = useCart()
 const { fetchProduct } = useProducts()
@@ -14,9 +14,10 @@ const route = useRoute()
 const router = useRouter()
 const productId = parseInt(route.params.id)
 
-const { data: product, pending: loading, error } = await useAsyncData<Product | null>(
+const productIdNum = Number(route.params.id)
+const { data: product, pending: loading, error } = await useAsyncData<ProductData | null>(
   `product-${productId}`,
-  () => fetchProduct(productId)
+  () => fetchProduct(productIdNum)
 )
 
 // ─── SEO ────────────────────────────────────

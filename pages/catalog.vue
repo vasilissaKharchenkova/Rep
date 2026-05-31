@@ -172,7 +172,7 @@ const hasActiveFilters = computed(() => {
 const formatPrice = (price) => price.toLocaleString('ru-RU')
 
 // close dropdown on outside click
-if (typeof window !== 'undefined') {
+if (process.client) {
   window.addEventListener('click', (e) => {
     if (!e.target.closest('.filter-dropdown')) {
       activeDropdown.value = null

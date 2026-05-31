@@ -1,4 +1,4 @@
-import { ref, onMounted } from 'vue'
+import { ref } from 'vue'
 
 export interface City {
   name: string
@@ -70,11 +70,10 @@ function loadCity(): void {
   }
 }
 
-export const useCity = () => {
-  onMounted(() => {
-    loadCity()
-  })
+// Load city immediately on module init (SSR-safe, checks process.client inside)
+loadCity()
 
+export const useCity = () => {
   function selectCity(city: City): void {
     selectedCity.value = city
     saveCity(city)

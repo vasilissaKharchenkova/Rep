@@ -1,4 +1,5 @@
 import { ref, computed, watch, onMounted } from 'vue'
+import { useAuth } from '~/composables/useAuth'
 
 export interface CartItem {
   id: number
@@ -93,7 +94,6 @@ export const useCart = () => {
     comment: string,
     contact: { firstName: string; lastName: string; phone: string; email: string }
   ) => {
-    const { useAuth } = await import('./useAuth')
     const { authFetch } = useAuth()
     const mappedItems = items.map(item => ({
       productId: item.id,

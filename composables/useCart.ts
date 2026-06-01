@@ -19,15 +19,27 @@ const cart = ref<CartItem[]>([])
 // ─── Notification state ──────────────────────
 const notificationText = ref('')
 const notificationVisible = ref(false)
+const notificationType = ref<'success' | 'warning'>('success')
 let notificationTimer: ReturnType<typeof setTimeout> | null = null
 
 function showAddNotification(name: string) {
   if (notificationTimer) clearTimeout(notificationTimer)
   notificationText.value = `«${name}» добавлен в корзину`
+  notificationType.value = 'success'
   notificationVisible.value = true
   notificationTimer = setTimeout(() => {
     notificationVisible.value = false
   }, 2500)
+}
+
+function showWarning(text: string) {
+  if (notificationTimer) clearTimeout(notificationTimer)
+  notificationText.value = text
+  notificationType.value = 'warning'
+  notificationVisible.value = true
+  notificationTimer = setTimeout(() => {
+    notificationVisible.value = false
+  }, 3000)
 }
 
 export const useCart = () => {
@@ -137,6 +149,8 @@ export const useCart = () => {
     totalItems,
     totalPrice,
     notificationText,
-    notificationVisible
+    notificationVisible,
+    notificationType,
+    showWarning
   }
 }

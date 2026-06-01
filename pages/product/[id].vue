@@ -7,7 +7,7 @@ import ProductQuestions from '~/components/ProductQuestions.vue'
 import { useProducts } from '~/composables/useProducts'
 import type { ProductData } from '~/server/types/product'
 
-const { addItem } = useCart()
+const { addItem, showWarning } = useCart()
 const { fetchProduct } = useProducts()
 
 const route = useRoute()
@@ -73,7 +73,7 @@ const selectColor = (index: number) => {
 const addToCart = () => {
   if (!product.value) return
   if (productColors.value.length && selectedColor.value === null) {
-    alert('Пожалуйста, выберите цвет')
+    showWarning('Пожалуйста, выберите цвет')
     return
   }
   const idx = selectedColor.value !== null ? selectedColor.value : 0
@@ -99,8 +99,10 @@ const openDeliveryInfo = () => {
   navigateTo('/delivery')
 }
 
-const openInstallmentInfo = () => {
-  alert('Рассрочка без переплаты доступна на срок от 3 до 24 месяцев без первоначального взноса. Для оформления обратитесь в менеджеру по телефону.')
+const showInstallmentInfo = ref(false)
+
+const toggleInstallmentInfo = () => {
+  showInstallmentInfo.value = !showInstallmentInfo.value
 }
 
 // ─── Image navigation & swipe ────────────────
@@ -128,7 +130,6 @@ const onTouchStart = (e: TouchEvent) => {
 const onTouchEnd = (e: TouchEvent) => {
   const dx = e.changedTouches[0].clientX - touchStartX.value
   const dy = e.changedTouches[0].clientY - touchStartY.value
-  // Only trigger swipe if horizontal movement is dominant and > 50px
   if (Math.abs(dx) > Math.abs(dy) && Math.abs(dx) > 50) {
     if (dx > 0) prevImage()
     else nextImage()
@@ -158,8 +159,8 @@ const onTouchEnd = (e: TouchEvent) => {
           
           <!-- Images Column -->
           <div class="flex gap-4">
-            <!-- Thumbnails -->
-            <div class="flex flex-col gap-3 max-h-[516px] overflow-y-auto [&::-webkit-scrollbar]:hidden">
+            <!-- Thumbnails (desktop only) -->
+            <div class="hidden md:flex flex-col gap-3 max-h-[516px] overflow-y-auto [&::-webkit-scrollbar]:hidden">
               <div v-for="(image, index) in currentVariantImages" :key="index" 
                    @click="selectImage(index)"
                    class="w-[120px] h-[120px] border-2 cursor-pointer transition-all"
@@ -177,15 +178,25 @@ const onTouchEnd = (e: TouchEvent) => {
               <!-- Arrow buttons -->
               <button v-if="currentVariantImages.length > 1"
                       @click="prevImage"
-                      class="absolute left-2 top-1/2 -translate-y-1/2 w-10 h-10 flex items-center justify-center bg-white/80 hover:bg-white rounded-full shadow transition cursor-pointer border-none">
-                <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 18 9 12 15 6"/></svg>
+                      class="absolute left-2 top-1/2 -translate-y-1/2 w-12 h-12 md:w-10 md:h-10 flex items-center justify-center bg-black/20 md:bg-white/80 hover:bg-white/90 rounded-full shadow transition cursor-pointer border-none z-10">
+                <svg class="w-6 h-6 md:w-5 md:h-5 text-white md:text-current" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 18 9 12 15 6"/></svg>
               </button>
               <button v-if="currentVariantImages.length > 1"
                       @click="nextImage"
-                      class="absolute right-2 top-1/2 -translate-y-1/2 w-10 h-10 flex items-center justify-center bg-white/80 hover:bg-white rounded-full shadow transition cursor-pointer border-none">
-                <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg>
+                      class="absolute right-2 top-1/2 -translate-y-1/2 w-12 h-12 md:w-10 md:h-10 flex items-center justify-center bg-black/20 md:bg-white/80 hover:bg-white/90 rounded-full shadow transition cursor-pointer border-none z-10">
+                <svg class="w-6 h-6 md:w-5 md:h-5 text-white md:text-current" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg>
               </button>
             </div>
+          </div>
+
+          <!-- Progress dots (mobile only) -->
+          <div v-if="currentVariantImages.length > 1" class="flex justify-center gap-1.5 mt-3 md:hidden">
+            <div
+              v-for="(_, index) in currentVariantImages"
+              :key="index"
+              class="w-2 h-2 rounded-full transition-all duration-200"
+              :class="activeImage === index ? 'bg-primary w-3 h-3' : 'bg-gray-300'"
+            ></div>
           </div>
 
           <!-- Info Column -->
@@ -245,34 +256,52 @@ const onTouchEnd = (e: TouchEvent) => {
                 <span>Стоимость доставки</span>
                 <span>›</span>
               </div>
-              <div @click="openInstallmentInfo" class="flex items-center justify-between py-3 border-b border-gray-200 cursor-pointer hover:text-primary">
+              <div @click="toggleInstallmentInfo" class="flex items-center justify-between py-3 border-b border-gray-200 cursor-pointer hover:text-primary">
                 <span>Рассрочка без переплаты</span>
-                <span>›</span>
+                <svg
+                  class="w-3 h-3 transition-transform duration-200"
+                  :class="{ 'rotate-90': showInstallmentInfo }"
+                  viewBox="0 0 10 6" fill="none"
+                >
+                  <path d="M1 1L5 5L9 1" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+                </svg>
               </div>
+              <Transition
+                enter-active-class="transition duration-200 ease-out"
+                enter-from-class="opacity-0 -translate-y-1"
+                enter-to-class="opacity-100 translate-y-0"
+                leave-active-class="transition duration-150 ease-in"
+                leave-from-class="opacity-100 translate-y-0"
+                leave-to-class="opacity-0 -translate-y-1"
+              >
+                <div v-if="showInstallmentInfo" class="py-3 text-sm text-textMain/80 leading-relaxed border-b border-gray-200">
+                  Рассрочка без переплаты доступна на срок от 3 до 24 месяцев без первоначального взноса. Для оформления обратитесь к менеджеру по телефону.
+                </div>
+              </Transition>
             </div>
           </div>
         </div>
 
         <!-- Tabs Section -->
         <div class="mt-16">
-          <div class="flex gap-12 border-b border-gray-200 mb-8">
+          <div class="flex gap-4 md:gap-12 overflow-x-auto whitespace-nowrap border-b border-gray-200 mb-8 scrollbar-hide">
             <button @click="selectTab('description')" 
-                    class="pb-4 font-body text-lg"
+                    class="pb-4 font-body text-sm md:text-lg flex-shrink-0"
                     :class="{ 'border-b-2 border-primary text-primary': activeTab === 'description', 'text-gray-500': activeTab !== 'description' }">
               Описание
             </button>
             <button @click="selectTab('characteristics')" 
-                    class="pb-4 font-body text-lg"
+                    class="pb-4 font-body text-sm md:text-lg flex-shrink-0"
                     :class="{ 'border-b-2 border-primary text-primary': activeTab === 'characteristics', 'text-gray-500': activeTab !== 'characteristics' }">
               Характеристики
             </button>
             <button @click="selectTab('reviews')" 
-                    class="pb-4 font-body text-lg"
+                    class="pb-4 font-body text-sm md:text-lg flex-shrink-0"
                     :class="{ 'border-b-2 border-primary text-primary': activeTab === 'reviews', 'text-gray-500': activeTab !== 'reviews' }">
               Отзывы о товаре ({{ product.reviewsCount }})
             </button>
             <button @click="selectTab('questions')" 
-                    class="pb-4 font-body text-lg"
+                    class="pb-4 font-body text-sm md:text-lg flex-shrink-0"
                     :class="{ 'border-b-2 border-primary text-primary': activeTab === 'questions', 'text-gray-500': activeTab !== 'questions' }">
               Вопросы о товаре ({{ product?.questionsCount || 0 }})
             </button>
@@ -298,3 +327,13 @@ const onTouchEnd = (e: TouchEvent) => {
 
   </main>
 </template>
+
+<style scoped>
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;
+}
+.scrollbar-hide {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+</style>

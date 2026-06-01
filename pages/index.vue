@@ -182,7 +182,7 @@ const nextWorks = () => worksSwiper.value?.slideNext()
 
     <!-- Newsletter section -->
     <section class="bg-primary mt-20 pt-10 pb-12 relative">
-      <img src="/images/4df9807e9d3e419d1c0d0bd39c60a19f-no-bg-preview (carve.photos) 2.png" alt="Стул" class="absolute left-8 -top-10 h-[350px] object-contain z-10" style="filter: drop-shadow(0 8px 12px rgba(0,0,0,0.25));">
+      <img src="/images/4df9807e9d3e419d1c0d0bd39c60a19f-no-bg-preview (carve.photos) 2.png" alt="Стул" class="hidden md:block absolute left-8 -top-10 h-[350px] object-contain z-10" style="filter: drop-shadow(0 8px 12px rgba(0,0,0,0.25));">
       <div class="container mx-auto px-4">
         <h2 class="text-white text-[clamp(1.5rem,3vw,2.25rem)] text-center mb-10 font-[Arsenal_SC]">
           Дополнительная скидка до 5 000 ₽ за подписку на рассылку

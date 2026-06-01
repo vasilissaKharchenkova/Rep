@@ -4,18 +4,32 @@
       v-if="notificationVisible"
       class="fixed top-6 right-6 z-[100] max-w-sm w-full"
     >
-      <div class="bg-white rounded-2xl shadow-xl shadow-gray-200/60 border border-border p-5 flex items-start gap-4">
-        <!-- Success icon -->
-        <div class="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0 mt-0.5">
-          <svg class="w-5 h-5 text-primary" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+      <div
+        class="rounded-2xl shadow-xl p-5 flex items-start gap-4"
+        :class="notificationType === 'warning' ? 'bg-amber-50 border border-amber-200 shadow-amber-100/60' : 'bg-white shadow-gray-200/60 border border-border'"
+      >
+        <!-- Icon -->
+        <div
+          class="w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5"
+          :class="notificationType === 'warning' ? 'bg-amber-100' : 'bg-primary/10'"
+        >
+          <!-- Warning icon -->
+          <svg v-if="notificationType === 'warning'" class="w-5 h-5 text-amber-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/>
+            <line x1="12" y1="9" x2="12" y2="13"/>
+            <line x1="12" y1="17" x2="12.01" y2="17"/>
+          </svg>
+          <!-- Success icon -->
+          <svg v-else class="w-5 h-5 text-primary" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
             <polyline points="20 6 9 17 4 12" />
           </svg>
         </div>
 
         <!-- Text -->
         <div class="flex-1 min-w-0">
-          <p class="font-body text-sm text-textMain font-medium">{{ notificationText }}</p>
+          <p class="font-body text-sm font-medium" :class="notificationType === 'warning' ? 'text-amber-800' : 'text-textMain'">{{ notificationText }}</p>
           <NuxtLink
+            v-if="notificationType === 'success'"
             to="/cart"
             class="inline-block mt-2 text-xs text-primary font-body hover:text-primaryDark transition-colors underline underline-offset-2"
           >
@@ -40,7 +54,7 @@
 <script setup lang="ts">
 import { useCart } from '~/composables/useCart'
 
-const { notificationText, notificationVisible } = useCart()
+const { notificationText, notificationVisible, notificationType } = useCart()
 </script>
 
 <style scoped>

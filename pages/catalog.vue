@@ -46,6 +46,7 @@ const sortBy = ref('default')
 const gridColumns = ref(3)
 
 const activeDropdown = ref(null)
+const isMobileFiltersOpen = ref(false)
 
 // ─── Computed ────────────────────────────────
 
@@ -137,11 +138,18 @@ const selectStyle = (id) => {
 
 const selectColor = (hex) => {
   activeColorHex.value = activeColorHex.value === hex ? '' : hex
-  activeDropdown.value = null
+  // only close desktop dropdown, not mobile panel
+  if (activeDropdown.value !== 'mobile') {
+    activeDropdown.value = null
+  }
 }
 
 const toggleDropdown = (name) => {
   activeDropdown.value = activeDropdown.value === name ? null : name
+}
+
+const toggleMobileFilters = () => {
+  isMobileFiltersOpen.value = !isMobileFiltersOpen.value
 }
 
 const toggleGrid = (cols) => {
@@ -486,7 +494,7 @@ if (process.client) {
         <!-- Mobile filter bar -->
         <div class="flex lg:hidden items-center justify-between">
           <button
-            @click="toggleDropdown('mobile')"
+            @click="toggleMobileFilters"
             class="flex items-center gap-2 px-4 py-2.5 border border-border rounded text-sm font-body text-textMain cursor-pointer bg-white"
           >
             <svg class="w-4 h-4" viewBox="0 0 16 16" fill="none"><path d="M2 4H14M4 8H12M6 12H10" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
@@ -502,7 +510,7 @@ if (process.client) {
                 <option v-for="opt in sortOptions" :key="opt.id" :value="opt.id">{{ opt.name }}</option>
               </select>
             </div>
-            <div class="flex border border-border rounded overflow-hidden">
+            <div class="hidden lg:flex border border-border rounded overflow-hidden">
               <button @click="toggleGrid(3)" class="p-2 transition-colors cursor-pointer border-none" :class="gridColumns === 3 ? 'bg-primary text-white' : 'bg-white text-gray-400'">
                 <svg class="w-3.5 h-3.5" viewBox="0 0 16 16" fill="currentColor">
                   <rect x="1" y="1" width="4" height="4" rx="1"/><rect x="7" y="1" width="4" height="4" rx="1"/><rect x="13" y="1" width="4" height="4" rx="1"/>
@@ -524,7 +532,7 @@ if (process.client) {
 
         <!-- Mobile filters panel -->
         <Transition name="slide">
-          <div v-if="activeDropdown === 'mobile'" class="lg:hidden mt-4 p-4 border border-border rounded-lg bg-white shadow-lg">
+          <div v-if="isMobileFiltersOpen" class="lg:hidden mt-4 p-4 border border-border rounded-lg bg-white shadow-lg">
             <!-- Category -->
             <div class="mb-4">
               <label class="text-[11px] uppercase tracking-wider text-gray-400 block mb-2">Категория</label>

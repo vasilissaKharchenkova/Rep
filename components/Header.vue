@@ -171,24 +171,7 @@ onBeforeUnmount(() => {
 
         <!-- Right section: cart + account (visible on all screens) -->
         <div class="flex items-center gap-4 md:gap-6 md:justify-self-end">
-          <!-- Cart icon -->
-          <NuxtLink to="/cart" @click="closeMobileMenu" class="hover:text-primary transition-colors relative">
-            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-              <circle cx="8" cy="21" r="1"/>
-              <circle cx="19" cy="21" r="1"/>
-              <path d="M2.05 2.05h2l2.66 12.42a2 2 0 0 0 2 1.58h9.78a2 2 0 0 0 1.95-1.57l1.65-7.43H5.12"/>
-            </svg>
-            <span v-if="totalItems > 0" class="absolute -top-2 -right-2 w-5 h-5 bg-primary text-white text-xs rounded-full flex items-center justify-center">{{ totalItems }}</span>
-          </NuxtLink>
-
-          <!-- Account icon -->
-          <NuxtLink to="/account" @click="closeMobileMenu" class="hover:text-primary transition-colors">
-            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-              <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
-              <circle cx="12" cy="7" r="4"/>
-            </svg>
-          </NuxtLink>
-
+          
           <!-- Desktop-only items -->
           <div class="hidden md:flex items-center gap-6">
             <NuxtLink to="/delivery" active-class="text-brown font-bold border-b-2 border-brown pb-1" class="text-brown font-body tracking-wide hover:opacity-80 transition-opacity font-medium">Доставка</NuxtLink>
@@ -234,6 +217,23 @@ onBeforeUnmount(() => {
               </Transition>
             </div>
           </div>
+          <!-- Cart icon -->
+          <NuxtLink to="/cart" @click="closeMobileMenu" class="hover:text-primary transition-colors relative">
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <circle cx="8" cy="21" r="1"/>
+              <circle cx="19" cy="21" r="1"/>
+              <path d="M2.05 2.05h2l2.66 12.42a2 2 0 0 0 2 1.58h9.78a2 2 0 0 0 1.95-1.57l1.65-7.43H5.12"/>
+            </svg>
+            <span v-if="totalItems > 0" class="absolute -top-2 -right-2 w-5 h-5 bg-primary text-white text-xs rounded-full flex items-center justify-center">{{ totalItems }}</span>
+          </NuxtLink>
+
+          <!-- Account icon -->
+          <NuxtLink to="/account" @click="closeMobileMenu" class="hover:text-primary transition-colors">
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
+              <circle cx="12" cy="7" r="4"/>
+            </svg>
+          </NuxtLink>
         </div>
       </div>
     </div>
@@ -267,27 +267,7 @@ onBeforeUnmount(() => {
               class="w-full h-[40px] bg-brown/15 border border-brown/25 rounded-full px-4 text-sm text-brown placeholder-brown/60 outline-none focus:bg-brown/25 transition-all"
             />
           </div>
-
-          <!-- Functional icons row -->
-          <div class="flex items-center gap-6 justify-around pt-2">
-            <!-- Cart icon -->
-            <NuxtLink @click="closeMobileMenu" to="/cart" class="hover:text-primary transition-colors relative">
-              <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                <circle cx="8" cy="21" r="1"/>
-                <circle cx="19" cy="21" r="1"/>
-                <path d="M2.05 2.05h2l2.66 12.42a2 2 0 0 0 2 1.58h9.78a2 2 0 0 0 1.95-1.57l1.65-7.43H5.12"/>
-              </svg>
-              <span v-if="totalItems > 0" class="absolute -top-2 -right-2 w-5 h-5 bg-primary text-white text-xs rounded-full flex items-center justify-center">{{ totalItems }}</span>
-            </NuxtLink>
-
-            <!-- Account icon -->
-            <NuxtLink @click="closeMobileMenu" to="/account" class="hover:text-primary transition-colors">
-              <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
-                <circle cx="12" cy="7" r="4"/>
-              </svg>
-            </NuxtLink>
-          </div>
+       
         </div>
       </div>
     </Transition>

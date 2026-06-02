@@ -11,6 +11,7 @@ export interface CollectionProduct {
   article: string
   price: number
   image: string
+  colorVariants?: { name: string; color: string; image: string; images: string[] }[]
 }
 
 export interface Collection {

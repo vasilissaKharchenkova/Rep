@@ -76,9 +76,26 @@ export const useCart = () => {
   }
 
   const removeItem = (id: number, colorName?: string, collectionSlug?: string) => {
+    // Check if the item being removed belongs to a collection with discount
+    const itemToRemove = cart.value.find(
+      i => i.id === id && i.colorName === colorName && i.collectionSlug === collectionSlug
+    )
+    const hadCollectionDiscount = itemToRemove && itemToRemove.collectionSlug && itemToRemove.originalPrice && itemToRemove.originalPrice !== itemToRemove.price
+
     cart.value = cart.value.filter(item => 
       !(item.id === id && item.colorName === colorName && item.collectionSlug === collectionSlug)
     )
+
+    // If removed item had a collection discount, remove discount from all other items of the same collection
+    if (hadCollectionDiscount && collectionSlug) {
+      cart.value.forEach(item => {
+        if (item.collectionSlug === collectionSlug && item.originalPrice && item.originalPrice !== item.price) {
+          item.price = item.originalPrice
+          item.originalPrice = undefined
+        }
+      })
+    }
+
     saveCart()
   }
 

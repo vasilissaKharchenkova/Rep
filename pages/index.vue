@@ -52,7 +52,7 @@ async function switchImage(productId: number, newSrc: string) {
 
 async function fetchSliderProducts() {
   try {
-    sliderProducts.value = await $fetch('/api/slider')
+    sliderProducts.value = await $fetch<any[]>('/api/slider')
     for (const p of sliderProducts.value) {
       const src = p.image || ''
       imgSrcA.value[p.id] = src
@@ -113,8 +113,6 @@ onMounted(async () => {
   const initSwipers = async () => {
     const Swiper = (await import('swiper')).default
     const { Navigation, Mousewheel, Keyboard } = await import('swiper/modules')
-    await import('swiper/css')
-    await import('swiper/css/navigation')
 
     // Слайдер для Новая коллекция
     collectionSwiper.value = new Swiper('.collection-slider', {

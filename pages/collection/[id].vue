@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, computed } from 'vue'
+import { ref, reactive, computed } from 'vue'
 import { useRoute } from 'vue-router'
 import { useCart } from '~/composables/useCart'
 import { useCollections } from '~/composables/useCollections'
@@ -27,6 +27,7 @@ const fetchError = computed(() => {
 
 const addedToCart = ref(false)
 const itemAddedMessages = ref<Record<number, boolean>>({})
+const selectedColors = reactive<Record<number, { name: string; color: string; image: string } | null>>({})
 
 // ─── SEO ────────────────────────────────────
 const collectionTitle = computed(() => collection.value ? `${collection.value.name} — CLICKWOOD` : 'CLICKWOOD')
@@ -39,21 +40,28 @@ useHead({
   ]
 })
 
-const addItemToCart = (item: { id: number; name: string; price: number; image: string; article: string }) => {
+const selectColor = (productId: number, variant: { name: string; color: string; image: string }) => {
+  selectedColors[productId] = variant
+}
+
+const addItemToCart = (product: any) => {
   const discount = collection.value?.discount || 0
-  const discountedPrice = discount > 0 ? Math.round(item.price * (1 - discount / 100)) : item.price
+  const discountedPrice = discount > 0 ? Math.round(product.price * (1 - discount / 100)) : product.price
+  const sel = selectedColors[product.id]
   addItem({
-    id: item.id,
-    name: item.name,
+    id: product.id,
+    name: product.name,
     price: discountedPrice,
-    image: item.image,
-    article: item.article,
-    originalPrice: discount > 0 ? item.price : undefined,
-    collectionSlug: collection.value?.slug
+    image: sel?.image || product.image || '',
+    article: product.article,
+    originalPrice: discount > 0 ? product.price : undefined,
+    collectionSlug: collection.value?.slug,
+    colorName: sel?.name,
+    colorClass: sel?.color
   })
-  itemAddedMessages.value[item.id] = true
+  itemAddedMessages.value[product.id] = true
   setTimeout(() => {
-    itemAddedMessages.value[item.id] = false
+    itemAddedMessages.value[product.id] = false
   }, 1500)
 }
 
@@ -61,15 +69,18 @@ const addAllToCart = () => {
   if (!collection.value?.products) return
   const discount = collection.value.discount || 0
   collection.value.products.forEach(product => {
+    const sel = selectedColors[product.id]
     const discountedPrice = discount > 0 ? Math.round(product.price * (1 - discount / 100)) : product.price
     addItem({
       id: product.id,
       name: product.name,
       price: discountedPrice,
-      image: product.image,
+      image: sel?.image || product.image || '',
       article: product.article,
       originalPrice: discount > 0 ? product.price : undefined,
-      collectionSlug: collection.value?.slug
+      collectionSlug: collection.value?.slug,
+      colorName: sel?.name,
+      colorClass: sel?.color
     })
   })
   addedToCart.value = true
@@ -152,23 +163,39 @@ const addAllToCart = () => {
                 style="animation: fadeUp 0.3s ease both;"
                 :style="{ animationDelay: `${i * 0.05}s` }"
               >
-                <div class="flex items-center gap-4 p-4">
-                  <div class="w-20 h-20 rounded-lg overflow-hidden border border-border flex-shrink-0 bg-white">
-                    <img :src="product.image" :alt="product.name" class="w-full h-full object-cover" />
+                <div class="flex flex-col p-4 gap-3">
+                  <div class="flex items-center gap-4">
+                    <div class="w-28 h-28 rounded-lg overflow-hidden border border-border flex-shrink-0 bg-white">
+                      <img :src="selectedColors[product.id]?.image || product.image" :alt="product.name" class="w-full h-full object-cover" />
+                    </div>
+                    <div class="flex-1 min-w-0">
+                      <h3 class="font-body text-textMain font-medium">{{ product.name }}</h3>
+                      <p class="text-xs text-gray-400 mt-0.5">Код: {{ product.article }}</p>
+                      <p class="font-body text-lg text-textMain mt-1">{{ product.price.toLocaleString('ru-RU') }} ₽</p>
+                    </div>
+                    <button
+                      @click="addItemToCart(product)"
+                      class="px-5 py-2.5 border border-primary text-primary rounded-lg font-body text-sm hover:bg-primary hover:text-white transition-all whitespace-nowrap flex-shrink-0"
+                      :class="{ 'bg-primary text-white': itemAddedMessages[product.id] }"
+                    >
+                      <span v-if="itemAddedMessages[product.id]">✓ Добавлено</span>
+                      <span v-else>В корзину</span>
+                    </button>
                   </div>
-                  <div class="flex-1 min-w-0">
-                    <h3 class="font-body text-textMain font-medium">{{ product.name }}</h3>
-                    <p class="text-xs text-gray-400 mt-0.5">Код: {{ product.article }}</p>
-                    <p class="font-body text-lg text-textMain mt-1">{{ product.price.toLocaleString('ru-RU') }} ₽</p>
+                  <!-- Color variants for this product -->
+                  <div v-if="product.colorVariants && product.colorVariants.length > 0" class="flex items-center gap-2 ml-24">
+                    <span class="text-xs text-gray-400">Цвет:</span>
+                    <div
+                      v-for="variant in product.colorVariants"
+                      :key="variant.name"
+                      @click="selectColor(product.id, { name: variant.name, color: variant.color, image: variant.image || product.image })"
+                      class="w-6 h-6 rounded-full border-2 border-white shadow cursor-pointer transition-all duration-200"
+                      :class="selectedColors[product.id]?.color === variant.color ? 'ring-2 ring-primary scale-110' : ''"
+                      :style="{ backgroundColor: variant.color || '#ccc' }"
+                      :title="variant.name"
+                    ></div>
+                    <span v-if="selectedColors[product.id]" class="text-xs text-textMain/70">{{ selectedColors[product.id]?.name }}</span>
                   </div>
-                  <button
-                    @click="addItemToCart({ id: product.id, name: product.name, price: product.price, image: product.image, article: product.article })"
-                    class="px-5 py-2.5 border border-primary text-primary rounded-lg font-body text-sm hover:bg-primary hover:text-white transition-all whitespace-nowrap flex-shrink-0"
-                    :class="{ 'bg-primary text-white': itemAddedMessages[product.id] }"
-                  >
-                    <span v-if="itemAddedMessages[product.id]">✓ Добавлено</span>
-                    <span v-else>В корзину</span>
-                  </button>
                 </div>
               </div>
             </div>

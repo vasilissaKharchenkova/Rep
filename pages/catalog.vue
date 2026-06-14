@@ -610,7 +610,7 @@ if (process.client) {
 
         <div
           class="grid gap-x-[60px] gap-y-12"
-          :class="gridColumns === 3 ? 'grid-cols-1 md:grid-cols-3' : 'grid-cols-1 md:grid-cols-2 lg:grid-cols-4'"
+          :class="gridColumns === 3 ? 'grid-cols-1 md:grid-cols-2 tab:grid-cols-3' : 'grid-cols-1 md:grid-cols-2 tab:grid-cols-3 xl:grid-cols-4'"
         >
           <NuxtLink
             :to="`/product/${product.id}`"

@@ -19,6 +19,9 @@ export default {
       },
     },
     extend: {
+      screens: {
+        'tab': '900px',
+      },
       colors: {
         primary: '#788678',
         primaryDark: '#667566',

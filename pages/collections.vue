@@ -76,7 +76,7 @@ const benefits = [
         <div v-if="collections.length === 0" class="text-center py-20 text-gray-400">
           Нет доступных коллекций
         </div>
-        <div v-else class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-[60px]">
+        <div v-else class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 lg:gap-[60px]">
           <NuxtLink
             :to="`/collection/${col.slug}`"
             v-for="col in collections"
@@ -120,7 +120,7 @@ const benefits = [
       <div class="container mx-auto px-4">
         <h2 class="font-heading text-textMain text-4xl text-center mb-16">Преимущества готовых решений</h2>
         
-        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
           <div v-for="benefit in benefits" :key="benefit.title" 
                class="bg-white p-8 rounded-2xl border border-border text-center">
             <div class="text-5xl mb-6">{{ benefit.icon }}</div>

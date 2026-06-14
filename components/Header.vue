@@ -140,15 +140,15 @@ onBeforeUnmount(() => {
             </div>
           </Transition>
         </div>
-        <button>Связаться с нами</button>
+        <a href="mailto:clickwood@mail.com" class="hover:opacity-80 transition-opacity">Связаться с нами</a>
       </div>
     </div>
 
-    <!-- Main header -->
+        <!-- Main header -->
     <div class="py-4 border-b border-primaryDark">
-      <div class="container mx-auto px-4 flex items-center justify-between md:grid md:grid-cols-3">
-        <!-- Mobile burger button -->
-        <button @click="toggleMobileMenu" class="md:hidden flex items-center text-brown hover:opacity-80 transition-opacity cursor-pointer border-none">
+      <div class="container mx-auto px-4 flex items-center justify-between lg:grid lg:grid-cols-3">
+        <!-- Mobile / tablet burger button -->
+        <button @click="toggleMobileMenu" class="lg:hidden flex items-center text-brown hover:opacity-80 transition-opacity cursor-pointer border-none">
           <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
             <line x1="3" y1="6" x2="21" y2="6"/>
             <line x1="3" y1="12" x2="21" y2="12"/>
@@ -157,39 +157,21 @@ onBeforeUnmount(() => {
         </button>
 
         <!-- Left menu (desktop) -->
-        <nav class="hidden md:flex gap-8 md:justify-self-start">
+        <nav class="hidden lg:flex gap-8 lg:justify-self-start">
           <NuxtLink to="/catalog" active-class="text-brown font-bold border-b-2 border-brown pb-1" class="text-brown font-body tracking-wide hover:opacity-80 transition-opacity font-medium">Каталог</NuxtLink>
           <NuxtLink to="/collections" active-class="text-brown font-bold border-b-2 border-brown pb-1" class="text-brown font-body tracking-wide hover:opacity-80 transition-opacity font-medium">Коллекции</NuxtLink>
           <NuxtLink to="/about" active-class="text-brown font-bold border-b-2 border-brown pb-1" class="text-brown font-body tracking-wide hover:opacity-80 transition-opacity font-medium">О нас</NuxtLink>
         </nav>
 
         <!-- Logo -->
-        <NuxtLink to="/" class="font-heading font-bold text-3xl text-brown md:justify-self-center tracking-wider hover:opacity-80 transition-opacity">
+        <NuxtLink to="/" class="font-heading font-bold text-3xl text-brown lg:justify-self-center tracking-wider hover:opacity-80 transition-opacity">
           CLICKWOOD
         </NuxtLink>
 
-        <!-- Right section: cart + account (visible on all screens) + desktop items -->
-        <div class="flex items-center gap-4 md:gap-6 md:justify-self-end">
-          <!-- Cart icon -->
-          <NuxtLink to="/cart" @click="closeMobileMenu" class="hover:text-primary transition-colors relative">
-            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-              <circle cx="8" cy="21" r="1"/>
-              <circle cx="19" cy="21" r="1"/>
-              <path d="M2.05 2.05h2l2.66 12.42a2 2 0 0 0 2 1.58h9.78a2 2 0 0 0 1.95-1.57l1.65-7.43H5.12"/>
-            </svg>
-            <span v-if="totalItems > 0" class="absolute -top-2 -right-2 w-5 h-5 bg-primary text-white text-xs rounded-full flex items-center justify-center">{{ totalItems }}</span>
-          </NuxtLink>
-
-          <!-- Account icon -->
-          <NuxtLink to="/account" @click="closeMobileMenu" class="hover:text-primary transition-colors">
-            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-              <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
-              <circle cx="12" cy="7" r="4"/>
-            </svg>
-          </NuxtLink>
-
-          <!-- Desktop-only items -->
-          <div class="hidden md:flex items-center gap-6">
+        <!-- Right section: desktop items (delivery + search) + account + cart -->
+        <div class="flex items-center gap-4 lg:gap-6 lg:justify-self-end">
+          <!-- Desktop-only items (delivery + search) -->
+          <div class="hidden lg:flex items-center gap-6">
             <NuxtLink to="/delivery" active-class="text-brown font-bold border-b-2 border-brown pb-1" class="text-brown font-body tracking-wide hover:opacity-80 transition-opacity font-medium">Доставка</NuxtLink>
             <div ref="searchRef" class="relative">
               <input
@@ -230,6 +212,24 @@ onBeforeUnmount(() => {
               </Transition>
             </div>
           </div>
+
+          <!-- Account icon -->
+          <NuxtLink to="/account" @click="closeMobileMenu" class="hover:text-primary transition-colors">
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
+              <circle cx="12" cy="7" r="4"/>
+            </svg>
+          </NuxtLink>
+
+          <!-- Cart icon -->
+          <NuxtLink to="/cart" @click="closeMobileMenu" class="hover:text-primary transition-colors relative">
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <circle cx="8" cy="21" r="1"/>
+              <circle cx="19" cy="21" r="1"/>
+              <path d="M2.05 2.05h2l2.66 12.42a2 2 0 0 0 2 1.58h9.78a2 2 0 0 0 1.95-1.57l1.65-7.43H5.12"/>
+            </svg>
+            <span v-if="totalItems > 0" class="absolute -top-2 -right-2 w-5 h-5 bg-primary text-white text-xs rounded-full flex items-center justify-center">{{ totalItems }}</span>
+          </NuxtLink>
         </div>
       </div>
     </div>
@@ -241,7 +241,7 @@ onBeforeUnmount(() => {
       leave-active-class="transition duration-150 ease-in"
       leave-to-class="opacity-0 -translate-y-2"
     >
-      <div v-if="isMobileMenuOpen" class="md:hidden bg-white border-b border-primaryDark/20 shadow-lg">
+      <div v-if="isMobileMenuOpen" class="lg:hidden bg-white border-b border-primaryDark/20 shadow-lg">
         <div class="container mx-auto px-4 py-4 flex flex-col gap-4">
           <NuxtLink @click="closeMobileMenu" to="/catalog" class="text-brown font-body text-lg font-medium hover:opacity-80 transition-opacity">Каталог</NuxtLink>
           <NuxtLink @click="closeMobileMenu" to="/collections" class="text-brown font-body text-lg font-medium hover:opacity-80 transition-opacity">Коллекции</NuxtLink>

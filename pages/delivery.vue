@@ -126,7 +126,7 @@ const toggleFaq = (index) => {
           Способы доставки
         </h2>
         
-        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
           <div v-for="(method, index) in deliveryMethods" :key="index" 
                class="bg-white border border-border rounded-xl p-8 hover:shadow-lg hover:-translate-y-1 transition-all duration-300">
             <div class="text-5xl mb-6">{{ method.icon }}</div>

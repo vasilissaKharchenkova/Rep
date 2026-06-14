@@ -9,7 +9,7 @@
 
     <section class="py-20">
       <div class="container mx-auto px-4 max-w-4xl">
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-8">
           <div class="bg-white border border-border rounded-xl p-8 hover:shadow-lg transition-shadow">
             <div class="text-5xl mb-6">💵</div>
             <h3 class="font-heading text-textMain text-xl mb-4">Наличные курьеру</h3>

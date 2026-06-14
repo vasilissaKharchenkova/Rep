@@ -220,7 +220,7 @@ const galleryImages = [
             «Мы создаём мебель не для того чтобы просто заполнить пространство. Мы создаём вещи, которые становятся частью вашей жизни, хранят воспоминания о семейных ужинах, вечерах с близкими и тихих моментах уюта»
           </blockquote>
           
-          <div class="grid grid-cols-1 md:grid-cols-3 gap-10 mt-16">
+          <div class="grid grid-cols-1 sm:grid-cols-3 gap-10 mt-16">
             <div class="text-center">
               <div class="font-heading text-5xl text-primary mb-3">14</div>
               <p class="font-body text-textMain">лет на рынке</p>

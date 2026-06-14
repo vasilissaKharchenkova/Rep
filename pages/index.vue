@@ -164,7 +164,7 @@ const nextWorks = () => worksSwiper.value?.slideNext()
 <template>
   <main>
     <!-- Hero section -->
-    <section class="h-[724px] bg-gray-200 flex flex-col items-center justify-center relative">
+    <section class="h-[500px] md:h-[600px] lg:h-[724px] bg-gray-200 flex flex-col items-center justify-center relative">
       <div class="absolute inset-0 bg-black/15"></div>
       <div class="absolute inset-0 bg-[url('/images/news_bg.png')] bg-cover bg-center"></div>
       <div class="container mx-auto px-4 text-center relative z-10">
@@ -228,7 +228,7 @@ const nextWorks = () => worksSwiper.value?.slideNext()
           <div class="swiper-wrapper">
             <div v-for="product in sliderProducts" :key="product.id" class="swiper-slide cursor-pointer" @click="onSlideClick(product.id)">
               <div class="border border-border p-0 relative group">
-                <div class="w-full h-[540px] overflow-hidden relative bg-gray-100">
+                <div class="w-full h-[400px] lg:h-[540px] overflow-hidden relative bg-gray-100">
                   <!-- Image A (visible when showA is true) -->
                   <img
                     :src="imgSrcA[product.id] || product.image"
@@ -274,9 +274,9 @@ const nextWorks = () => worksSwiper.value?.slideNext()
           О нас
         </h2>
 
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-6 items-stretch">
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 items-stretch">
           <!-- Текст занимает первые 2 колонки -->
-          <div class="col-span-2 flex flex-col justify-between h-full">
+          <div class="lg:col-span-2 flex flex-col justify-between h-full">
             <p class="text-xl leading-relaxed font-[Roscha] mb-12">
               <span class="text-6xl font-bold">CLICKWOOD</span> – это пространство, где рождаются идеи для вашего интерьера.
               Мы объединили проверенное качество, продуманный дизайн и заботу о каждом клиенте. Наша цель — помочь вам создать дом вашей мечты, где будет комфортно жить, работать и отдыхать всей семьей. Мы любим то, что делаем, и гарантируем, что каждая покупка у нас станет вкладом в ваш уют
@@ -290,7 +290,7 @@ const nextWorks = () => worksSwiper.value?.slideNext()
           </div>
 
           <!-- Большая картинка справа занимает всю высоту -->
-          <div class="col-span-1">
+          <div class="lg:col-span-1">
             <img src="/images/about_divan_2.png" alt="Диван" class="w-full h-full object-cover">
           </div>
         </div>
@@ -319,32 +319,32 @@ const nextWorks = () => worksSwiper.value?.slideNext()
           <div class="swiper-wrapper">
             <div class="swiper-slide">
               <div class="border border-border p-0">
-                <img src="/images/7e4e3f32978cee127ef43a663a42e67d 1.png" alt="Проект 1" class="w-full h-[555px] object-cover">
+                <img src="/images/7e4e3f32978cee127ef43a663a42e67d 1.png" alt="Проект 1" class="w-full h-[380px] lg:h-[555px] object-cover">
               </div>
             </div>
             <div class="swiper-slide">
               <div class="border border-border p-0">
-                <img src="/images/6be3d25fdaf6d60d8a89454f3e4527be 1.png" alt="Проект 2" class="w-full h-[555px] object-cover">
+                <img src="/images/6be3d25fdaf6d60d8a89454f3e4527be 1.png" alt="Проект 2" class="w-full h-[380px] lg:h-[555px] object-cover">
               </div>
             </div>
             <div class="swiper-slide">
               <div class="border border-border p-0">
-                <img src="/images/722f587adca9f6a9e5ea8c50f9cd79ca 1.png" alt="Проект 3" class="w-full h-[555px] object-cover">
+                <img src="/images/722f587adca9f6a9e5ea8c50f9cd79ca 1.png" alt="Проект 3" class="w-full h-[380px] lg:h-[555px] object-cover">
               </div>
             </div>
             <div class="swiper-slide">
               <div class="border border-border p-0">
-                <img src="/images/3998af9f9062ea929622b61627c0015f.jpg" alt="Проект 4" class="w-full h-[555px] object-cover">
+                <img src="/images/3998af9f9062ea929622b61627c0015f.jpg" alt="Проект 4" class="w-full h-[380px] lg:h-[555px] object-cover">
               </div>
             </div>
             <div class="swiper-slide">
               <div class="border border-border p-0">
-                <img src="/images/1172ae6558b40a5c8ec6e2e8af3e8d52.jpg" alt="Проект 5" class="w-full h-[555px] object-cover">
+                <img src="/images/1172ae6558b40a5c8ec6e2e8af3e8d52.jpg" alt="Проект 5" class="w-full h-[380px] lg:h-[555px] object-cover">
               </div>
             </div>
             <div class="swiper-slide">
               <div class="border border-border p-0">
-                <img src="/images/797f407b8a9213dda489d6ce38310d71.jpg" alt="Проект 6" class="w-full h-[555px] object-cover">
+                <img src="/images/797f407b8a9213dda489d6ce38310d71.jpg" alt="Проект 6" class="w-full h-[380px] lg:h-[555px] object-cover">
               </div>
             </div>
           </div>

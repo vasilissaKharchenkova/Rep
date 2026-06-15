@@ -39,19 +39,7 @@ export default defineNuxtConfig({
       }
     }
   },
-  modules: ['@nuxtjs/tailwindcss', '@nuxt/image'],
-  image: {
-    provider: 'ipx',
-    domains: ['images.unsplash.com'],
-    screens: {
-      xs: 320,
-      sm: 640,
-      md: 768,
-      lg: 1024,
-      xl: 1280,
-      xxl: 1536,
-    },
-  },
+  modules: ['@nuxtjs/tailwindcss'],
   tailwindcss: {
     viewer: false,
     config: {

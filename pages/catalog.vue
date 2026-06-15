@@ -619,7 +619,7 @@ if (process.client) {
             class="group cursor-pointer block"
           >
             <div class="relative overflow-hidden">
-              <NuxtImg
+              <img
                 :src="product.image"
                 :alt="product.name"
                 class="w-full h-[320px] object-cover transition-transform duration-500 group-hover:scale-105"

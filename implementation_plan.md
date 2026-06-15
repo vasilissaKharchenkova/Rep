@@ -1,38 +1,61 @@
 # Implementation Plan
 
 [Overview]
-Исправить ошибку "Could not load the 'sharp' module using the win32-x64 runtime" при запуске `nuxt preview` после `git clone` и `npm run build`.
+Заменить нативную библиотеку `sharp` на чистую JS-библиотеку `jimp` для устранения ошибки "Could not load the 'sharp' module using the win32-x64 runtime" на разных ПК после git clone.
 
 [Types]
-Типы не изменяются.
+- Удалить тип `OptimizeOptions` из `server/utils/image.ts` (заменяется параметрами jimp)
 
 [Files]
-Изменяется только `package.json` — в секции `scripts` исправляется `postinstall` скрипт.
-
 **Изменяемые файлы:**
-- `package.json` (корень проекта):
-  - Заменить строку `"postinstall": "nuxt prepare"` на `"postinstall": "nuxt prepare && node -e \"process.env.npm_config_include_optional='true'; require('child_process').execSync('npm install sharp --include=optional', {stdio:'inherit', cwd:process.cwd()})\""` — более надёжный вариант: добавить отдельный скрипт `postinstall` этапом установки sharp с опциональными зависимостями.
+1. `package.json`:
+   - Убрать `sharp` из `dependencies`
+   - Убрать `@types/sharp` из `devDependencies`
+   - Добавить `jimp` в `dependencies`
+   - Исправить `postinstall`: `"postinstall": "nuxt prepare"`
+   - Исправить `build`: `"build": "nuxt build"`
 
-  Либо просто изменить на: `"postinstall": "nuxt prepare && npm install --include=optional sharp"` — но это может вызвать конфликт с lock-файлом. Лучшее решение — добавить в `scripts` поле `"postinstall": "nuxt prepare"` оставить как есть, но переименовать его, и создать отдельный хук, который гарантирует установку нативных биндингов через npm lifecycle.
+2. `server/utils/image.ts`:
+   - Заменить `import sharp from 'sharp'` на `import { Jimp } from 'jimp'`
+   - Переписать функцию `optimizeImage` с использованием Jimp API:
+     - Чтение буфера через `Jimp.read(buffer)`
+     - Ресайз с сохранением пропорций (`resize({ w: width })`)
+     - Конвертация в WebP с качеством через `.quality(quality).getBuffer('image/webp')`
+   - Убрать `OptimizeOptions` (заменяется встроенными типами Jimp)
+   - Функция `getWebPFilename` остаётся без изменений
 
-  **Оптимальное решение:** Изменить скрипт `postinstall` на:
-  ```
-  "postinstall": "nuxt prepare && npm install --include=optional sharp --no-save"
-  ```
-  Флаг `--no-save` не добавляет sharp в package.json (он уже там есть), а `--include=optional` заставляет npm установить опциональные зависимости sharp (нативные бинарники под текущую платформу).
+**Удаляемые файлы:** нет
 
 [Functions]
-Функции не изменяются.
+**Изменяемые функции:**
+1. `optimizeImage(buffer, options?)` в `server/utils/image.ts`
+   - Старая сигнатура: `async function optimizeImage(buffer: Buffer, options: OptimizeOptions): Promise<Buffer>` (использует sharp)
+   - Новая сигнатура: `async function optimizeImage(buffer: Buffer, options?: { width?: number; quality?: number }): Promise<Buffer>`
+   - Реализация: Jimp.read → resize → quality → getBuffer('image/webp')
+
+2. `getWebPFilename(originalName)` — без изменений
 
 [Classes]
 Классы не изменяются.
 
 [Dependencies]
-Зависимости не изменяются — `sharp` ^0.34.5 остаётся в `dependencies`. Добавляется только гарантия установки его опциональных (нативных) зависимостей через `postinstall` скрипт.
+**Удалить:**
+- `sharp: "^0.34.5"` из `dependencies`
+- `@types/sharp: "^0.31.1"` из `devDependencies`
+
+**Добавить:**
+- `jimp: "^1.6.0"` (последняя stable-версия с поддержкой ES modules) в `dependencies`
 
 [Testing]
-Проверить, что после `git clone`, `npm install`, `npm run build`, `npm run preview` — сервер запускается без ошибки sharp.
+- Убедиться, что `npm install` проходит без ошибок
+- Убедиться, что `npm run build` собирает проект
+- Убедиться, что `npm run dev` запускается без ошибок sharp
+- Проверить загрузку изображений через админку (менее критично)
 
 [Implementation Order]
-Одна правка в `package.json`:
-1. Отредактировать скрипт `postinstall` в `package.json`: `"postinstall": "nuxt prepare && npm install --include=optional sharp --no-save"`
+1. Установить jimp через npm
+2. Удалить sharp и @types/sharp
+3. Переписать `server/utils/image.ts`
+4. Исправить скрипты в `package.json` (убрать костыли)
+5. Проверить сборку
+6. Закоммитить и запушить

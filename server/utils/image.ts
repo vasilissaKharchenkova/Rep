@@ -16,7 +16,7 @@ export async function optimizeImage(
 export function getOptimizedFilename(originalName: string): string {
   const ext = originalName.replace(/^.*\./, '')
   if (ext !== originalName) {
-    return originalName.replace(/\.[^.]+$/, '.jpg')
+    return originalName.replace(/\.[^.]+$/, '.webp')
   }
-  return `${originalName}.jpg`
+  return `${originalName}.webp`
 }

@@ -51,7 +51,6 @@ export default defineNuxtConfig({
       xl: 1280,
       xxl: 1536,
     },
-    format: ['webp'],
   },
   tailwindcss: {
     viewer: false,

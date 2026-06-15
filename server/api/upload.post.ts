@@ -3,7 +3,7 @@ import multer from 'multer'
 import path from 'path'
 import fs from 'fs/promises'
 import { adminGuard } from '../utils/auth'
-import { optimizeImage, getWebPFilename } from '../utils/image'
+import { optimizeImage, getOptimizedFilename } from '../utils/image'
 import { createCache } from '../utils/cache'
 
 // Import the cache instance to invalidate after upload
@@ -44,15 +44,15 @@ export default defineEventHandler(async (event) => {
     const buffer = await fs.readFile(file.path)
     const optimizedBuffer = await optimizeImage(buffer, { width: 1200, quality: 85 })
 
-    const webpFilename = getWebPFilename(file.filename)
-    const webpPath = path.join(uploadDir, webpFilename)
+    const optimizedFilename = getOptimizedFilename(file.filename)
+    const optimizedPath = path.join(uploadDir, optimizedFilename)
 
-    await fs.writeFile(webpPath, optimizedBuffer)
+    await fs.writeFile(optimizedPath, optimizedBuffer)
 
     // Delete the original uploaded file
     await fs.unlink(file.path).catch(() => {})
 
-    urls.push(`/images/${webpFilename}`)
+    urls.push(`/images/${optimizedFilename}`)
   }
 
   // Invalidate server cache after upload
